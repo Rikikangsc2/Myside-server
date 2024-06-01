@@ -11,9 +11,6 @@ const FormData = require('form-data');
 const succes = "https://nue-api.vercel.app/succes?re=";
 const base = "https://nue-api.vercel.app";
 
-app.get('/tes', (req, res) => {
-  res.send('Hello from /tes');
-});
 app.get('/gemini', async (req, res) => {
   try {
     if (!req.query.prompt) {
