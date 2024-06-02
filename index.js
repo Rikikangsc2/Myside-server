@@ -85,7 +85,7 @@ app.get('/diff', async (req, res) => {
       url: `https://telegra.ph${imageUrl}`
     };
     const red = Buffer.from(JSON.stringify(result)).toString('base64');
-    res.redirect(success + red);
+    res.redirect(succes + red);
   } catch (uploadError) {
     console.error('Upload to Telegra.ph failed:', uploadError.message);
     return res.redirect(failed);
