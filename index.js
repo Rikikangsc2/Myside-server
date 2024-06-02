@@ -25,6 +25,74 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
+app.get('/diff', async (req, res) => {
+  const prompt = req.query.prompt;
+
+  if (!prompt) {
+    return res.status(400).send('Prompt query parameter is required');
+  }
+
+  const alternativeAPIs = [
+    'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
+    'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5'
+  ];
+
+  const apiKeys = [
+    "Bearer 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",
+    "Bearer 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",
+    "Bearer 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"
+  ];
+
+  let response;
+
+  try {
+    const randomApiKey = Math.floor(Math.random() * apiKeys.length);
+    const apiKey = apiKeys[randomApiKey];
+
+    const data = { "inputs": prompt };
+    const primaryUrl = 'https://api-inference.huggingface.co/models/sd-community/sdxl-flash';
+    response = await axios.post(primaryUrl, data, { headers: { Authorization: apiKey }, responseType: 'arraybuffer' });
+  } catch (error) {
+    for (const apiUrl of alternativeAPIs) {
+      try {
+        const randomApiKey = Math.floor(Math.random() * apiKeys.length);
+        const apiKey = apiKeys[randomApiKey];
+
+        const data = { "inputs": prompt };
+        response = await axios.post(apiUrl, data, { headers: { Authorization: apiKey }, responseType: 'arraybuffer' });
+        break;
+      } catch (alternativeError) {
+        console.error('Alternative API failed:', alternativeError.message);
+      }
+    }
+  }
+
+  if (!response) {
+    return res.redirect(failed);
+  }
+
+  // Upload the image to Telegra.ph
+  try {
+    const form = new FormData();
+    form.append('file', response.data, { filename: 'image.jpg', contentType: 'image/jpeg' });
+
+    const uploadResponse = await axios.post('https://telegra.ph/upload', form, { headers: form.getHeaders() });
+
+    const imageUrl = uploadResponse.data[0].src;
+    const result = {
+      endpoint: base+'/api/diff?prompt='+encodeURIComponent(prompt),
+      status: 200,
+      url: `https://telegra.ph${imageUrl}`
+    };
+    const red = Buffer.from(JSON.stringify(result)).toString('base64');
+    res.redirect(success + red);
+  } catch (uploadError) {
+    console.error('Upload to Telegra.ph failed:', uploadError.message);
+    return res.redirect(failed);
+  }
+});
+
+
 app.get('/count', (req, res) => {
   const currentDate = new Date().getDate();
   if (currentDate !== data.lastDate) {
@@ -172,69 +240,6 @@ app.get('/gpt', async (req, res) => {
         console.log(err)
         res.redirect(failed);
     }
-});
-
-app.get('/diff', async (req, res) => {
-  const prompt = req.query.prompt;
-
-  if (!prompt) {
-    return res.status(400).send('Prompt query parameter is required');
-  }
-
-  const alternativeAPIs = [
-    'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
-    'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5'
-  ];
-
-  const apiKeys = [
-    "Bearer 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",
-    "Bearer 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",
-    "Bearer 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"
-  ];
-  const randomApiKey = Math.floor(Math.random() * apiKeys.length);
-  const apiKey = apiKeys[randomApiKey];
-
-  let response;
-
-  try {
-    const data = { "inputs": prompt };
-    const primaryUrl = 'https://api-inference.huggingface.co/models/sd-community/sdxl-flash';
-    response = await axios.post(primaryUrl, data, { headers: { Authorization: apiKey }, responseType: 'arraybuffer' });
-  } catch (error) {
-    for (const apiUrl of alternativeAPIs) {
-      try {
-        const data = { "inputs": prompt };
-        response = await axios.post(apiUrl, data, { headers: { Authorization: apiKey }, responseType: 'arraybuffer' });
-        break;
-      } catch (alternativeError) {
-        console.error('Alternative API failed:', alternativeError.message);
-      }
-    }
-  }
-
-  if (!response) {
-    return res.redirect(failed);
-  }
-
-  // Upload the image to Telegra.ph
-  try {
-    const form = new FormData();
-    form.append('file', response.data, { filename: 'image.jpg', contentType: 'image/jpeg' });
-
-    const uploadResponse = await axios.post('https://telegra.ph/upload', form, { headers: form.getHeaders() });
-
-    const imageUrl = uploadResponse.data[0].src;
-    const result = {
-      endpoint:base+'/api/diff?prompt='+encodeURIComponent(prompt),
-      status: 200,
-      url: `https://telegra.ph${imageUrl}`
-    };
-    const red = Buffer.from(JSON.stringify(result)).toString('base64')
-    res.redirect(succes+red);
-  } catch (uploadError) {
-    console.error('Upload to Telegra.ph failed:', uploadError.message);
-    return res.redirect(failed)
-  }
 });
 
 app.get('/', (req, res) => {
