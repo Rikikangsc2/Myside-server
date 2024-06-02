@@ -13,7 +13,7 @@ const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 
 app.get('/image', async (req, res) => {
-  const query = req.query.query; 
+  const query = req.query.query;
   try {
     const results = await new Promise((resolve, reject) => {
       gis(query, (error, results) => {
@@ -26,23 +26,43 @@ app.get('/image', async (req, res) => {
     });
 
     const urls = results
-      .filter(result => result.width >= 800 && result.height >= 600) 
-      .map(result => result.url); 
+      .filter(result => result.width >= 800 && result.height >= 600)
+      .map(result => result.url);
+
     const checkUrl = async (url) => {
       try {
         const response = await axios.head(url);
-        return response.status === 200 ? url : null;
+        return (response.status === 200 && response.headers['content-type'].startsWith('image')) ? url : null;
       } catch (error) {
         return null;
       }
     };
 
-    const checkedUrls = await Promise.all(urls.map(url => checkUrl(url)));
+    const getValidUrl = async () => {
+      while (urls.length > 0) {
+        const randomIndex = Math.floor(Math.random() * urls.length);
+        const url = urls.splice(randomIndex, 1)[0];
+        const validUrl = await checkUrl(url);
+        if (validUrl) {
+          return validUrl;
+        }
+      }
+      return null;
+    };
 
-    const workingUrls = checkedUrls.filter(url => url !== null);
-    const json = {endpoint:base+'/api/image?query='+encodeURICompinent(query),status:200,result:workingUrls}
-    const red = Buffer.from(JSON.stringify(json)).toString('base64');
-    res.redirect(succes+red);
+    const validUrl = await getValidUrl();
+
+    if (validUrl) {
+      const json = {
+        endpoint: base + '/api/image?query=' + encodeURIComponent(query),
+        status: 200,
+        result: validUrl
+      };
+      const red = Buffer.from(JSON.stringify(json)).toString('base64');
+      res.redirect(succes + red);
+    } else {
+      res.redirect(failed);
+    }
   } catch (error) {
     res.redirect(failed);
   }
