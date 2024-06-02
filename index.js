@@ -14,6 +14,7 @@ const gis = require('g-i-s');
 
 app.get('/image', async (req, res) => {
   const query = req.query.query;
+
   try {
     const results = await new Promise((resolve, reject) => {
       gis(query, (error, results) => {
@@ -53,13 +54,31 @@ app.get('/image', async (req, res) => {
     const validUrl = await getValidUrl();
 
     if (validUrl) {
-      const json = {
-        endpoint: base + '/api/image?query=' + encodeURIComponent(query),
-        status: 200,
-        result: validUrl
-      };
-      const red = Buffer.from(JSON.stringify(json)).toString('base64');
-      res.redirect(succes + red);
+      const imageResponse = await axios.get(validUrl, { responseType: 'arraybuffer' });
+      const buffer = Buffer.from(imageResponse.data, 'binary');
+
+      const form = new FormData();
+      form.append('file', buffer, { filename: 'image.jpg' });
+
+      const uploadResponse = await axios.post('https://telegra.ph/upload', form, {
+        headers: {
+          ...form.getHeaders()
+        }
+      });
+
+      if (uploadResponse.data && uploadResponse.data[0] && uploadResponse.data[0].src) {
+        const telegraPhUrl = 'https://telegra.ph' + uploadResponse.data[0].src;
+
+        const json = {
+          endpoint: base + '/api/image?query=' + encodeURIComponent(query),
+          status: 200,
+          result: telegraPhUrl
+        };
+        const red = Buffer.from(JSON.stringify(json)).toString('base64');
+        res.redirect(succes + red);
+      } else {
+        res.redirect(failed);
+      }
     } else {
       res.redirect(failed);
     }
