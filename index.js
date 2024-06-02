@@ -40,8 +40,7 @@ app.get('/image', async (req, res) => {
     const checkedUrls = await Promise.all(urls.map(url => checkUrl(url)));
 
     const workingUrls = checkedUrls.filter(url => url !== null);
-    
-    const json = {endpoint:base+'/api/image?query=',status:200,result:workingUrls}
+    const json = {endpoint:base+'/api/image?query='+encodeURICompinent(query),status:200,result:workingUrls}
     const red = Buffer.from(JSON.stringify(json)).toString('base64');
     res.redirect(succes+red);
   } catch (error) {
@@ -67,7 +66,7 @@ app.get('/gemini', async (req, res) => {
       }
     });
 
-    const json = {endpoint:base+"/api/gemini?prompt=",status : 200, result : response.data.candidates[0].content.parts[0].text}
+    const json = {endpoint:base+"/api/gemini?prompt="+encodeURIComponent(req.query.prompt),status : 200, result : response.data.candidates[0].content.parts[0].text}
     const red = Buffer.from(JSON.stringify(json)).toString('base64');
   res.redirect(succes+red);
   } catch (error) {
@@ -96,7 +95,7 @@ app.get('/gpt', async (req, res) => {
                 }
             });
         });
-        const json = {endpoint:base+'/api/gpt?prompt=',status:200, result:data.gpt}
+        const json = {endpoint:base+'/api/gpt?prompt='+encodeURIComponent(prompt),status:200, result:data.gpt}
         const red = Buffer.from(JSON.stringify(json)).toString('base64')
         res.redirect(succes+red);
     } catch (err) {
@@ -156,7 +155,7 @@ app.get('/diff', async (req, res) => {
 
     const imageUrl = uploadResponse.data[0].src;
     const result = {
-      endpoint:base+'/api/diff?prompt=',
+      endpoint:base+'/api/diff?prompt='+encodeURIComponent(prompt),
       status: 200,
       url: `https://telegra.ph${imageUrl}`
     };
@@ -189,7 +188,7 @@ app.get('/snapsave', async (req, res) => {
     } else if (response.headers['content-type'].includes('video')) {
       type = 'video';
     }
-    const json = {endpoint: base+'/api/snapsave?url=',status: 200,type, result: hasil};
+    const json = {endpoint: base+'/api/snapsave?url='+encodeURIComponent(req.query.url),status: 200,type, result: hasil};
     res.redirect(succes + Buffer.from(JSON.stringify(json)).toString('base64')); 
   } catch (error) {
     console.error(error);
@@ -202,7 +201,6 @@ app.get('/yt-mp3', async (req, res) => {
     if (!ytdl.validateURL(url)) {
         return res.status(400).send('URL tidak valid');
     }
-    let info = await ytdl.getInfo(url);
     res.header('Content-Disposition', `attachment; filename="NueApi ${Date.now()}.mp3"`);
     res.setHeader('Content-Type', 'audio/mpeg');
     ytdl(url, { filter : 'audioonly' }).pipe(res);
@@ -213,7 +211,6 @@ app.get('/yt-mp4', async (req, res) => {
     if (!ytdl.validateURL(url)) {
         return res.status(400).send('URL tidak valid');
     }
-    let info = await ytdl.getInfo(url);
     res.header('Content-Disposition', `attachment; filename="NueApi ${Date.now()}.mp4"`);
     res.setHeader('Content-Type', 'video/mp4');
     ytdl(url, { filter: 'videoandaudio' }).pipe(res);
