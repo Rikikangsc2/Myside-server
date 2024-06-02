@@ -10,6 +10,43 @@ const failed = "https://nue-api.vercel.app/error"
 const FormData = require('form-data');
 const succes = "https://nue-api.vercel.app/succes?re=";
 const base = "https://nue-api.vercel.app";
+const gis = require('g-i-s');
+
+app.get('/image', async (req, res) => {
+  const query = req.query.query; 
+  try {
+    const results = await new Promise((resolve, reject) => {
+      gis(query, (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    const urls = results
+      .filter(result => result.width >= 800 && result.height >= 600) 
+      .map(result => result.url); 
+    const checkUrl = async (url) => {
+      try {
+        const response = await axios.head(url);
+        return response.status === 200 ? url : null;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const checkedUrls = await Promise.all(urls.map(url => checkUrl(url)));
+
+    const workingUrls = checkedUrls.filter(url => url !== null);
+
+    const red = Buffer.from(JSON.stringify(workingUrls)).toString('base64');
+    res.redirect(succes+red);
+  } catch (error) {
+    res.redirect(failed);
+  }
+});
 
 app.get('/gemini', async (req, res) => {
   try {
