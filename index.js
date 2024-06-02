@@ -40,8 +40,9 @@ app.get('/image', async (req, res) => {
     const checkedUrls = await Promise.all(urls.map(url => checkUrl(url)));
 
     const workingUrls = checkedUrls.filter(url => url !== null);
-
-    const red = Buffer.from(JSON.stringify(workingUrls)).toString('base64');
+    
+    const json = {endpoint:base+'/api/image?query=',status:200,result:workingUrls}
+    const red = Buffer.from(JSON.stringify(json)).toString('base64');
     res.redirect(succes+red);
   } catch (error) {
     res.redirect(failed);
