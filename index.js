@@ -12,6 +12,37 @@ const succes = "https://nue-api.vercel.app/succes?re=";
 const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 
+let data = {
+  today: 0,
+  yesterday: 0,
+  total: 0,
+  lastDate: new Date().getDate()
+};
+
+if (!fs.existsSync('data.json')) {
+  fs.writeFileSync('data.json', JSON.stringify(data));
+} else {
+  data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
+}
+
+app.get('/count', (req, res) => {
+  const currentDate = new Date().getDate();
+  if (currentDate !== data.lastDate) {
+    data.yesterday = data.today;
+    data.today = 0;
+    data.lastDate = currentDate;
+  }
+  data.today += 1;
+  data.total += 1;
+  fs.writeFileSync('data.json', JSON.stringify(data));
+  res.json(data);
+});
+
+app.get('/read', (req, res) => {
+  const data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
+  res.json(data);
+});
+
 app.get('/image', async (req, res) => {
   const query = req.query.query;
 
