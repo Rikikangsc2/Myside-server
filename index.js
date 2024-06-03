@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const scrap = require('@bochilteam/scraper');
 const axios = require('axios');
-const { gpt } = require('gpti');
+const { gpt, dalle } = require('gpti');
 const app = express();
 const failed = "https://nue-api.vercel.app/error"
 const FormData = require('form-data');
@@ -25,73 +25,50 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
-app.get('/diff', async (req, res) => {
-  const prompt = req.query.prompt;
+app.get('/dalle-v1', (req, res) => {
+    const prompt = req.query.prompt;
 
-  if (!prompt) {
-    return res.status(400).send('Prompt query parameter is required');
-  }
-
-  const alternativeAPIs = [
-    'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
-    'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5'
-  ];
-
-  const apiKeys = [
-    "Bearer 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",
-    "Bearer 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",
-    "Bearer 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"
-  ];
-
-  let response;
-
-  try {
-    const randomApiKey = Math.floor(Math.random() * apiKeys.length);
-    const apiKey = apiKeys[randomApiKey];
-
-    const data = { "inputs": prompt };
-    const primaryUrl = 'https://api-inference.huggingface.co/models/sd-community/sdxl-flash';
-    response = await axios.post(primaryUrl, data, { headers: { Authorization: apiKey }, responseType: 'arraybuffer' });
-  } catch (error) {
-    for (const apiUrl of alternativeAPIs) {
-      try {
-        const randomApiKey = Math.floor(Math.random() * apiKeys.length);
-        const apiKey = apiKeys[randomApiKey];
-
-        const data = { "inputs": prompt };
-        response = await axios.post(apiUrl, data, { headers: { Authorization: apiKey }, responseType: 'arraybuffer' });
-        break;
-      } catch (alternativeError) {
-        console.error('Alternative API failed:', alternativeError.message);
-      }
+    if (!prompt) {
+        return res.status(400).send('Prompt query parameter is required');
     }
-  }
 
-  if (!response) {
-    return res.redirect(failed);
-  }
+    dalle.v1({ prompt }, async (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.redirect(failed);
+        } else {
+            try {
+                const imageBuffer = Buffer.from(data.images[0].split(',')[1], 'base64');
 
-  // Upload the image to Telegra.ph
-  try {
-    const form = new FormData();
-    form.append('file', response.data, { filename: 'image.jpg', contentType: 'image/jpeg' });
+                // Function to upload image to Telegraph
+                const form = new FormData();
+                form.append('file', imageBuffer, { filename: 'image.jpg' });
 
-    const uploadResponse = await axios.post('https://telegra.ph/upload', form, { headers: form.getHeaders() });
+                const response = await axios.post('https://telegra.ph/upload', form, {
+                    headers: {
+                        ...form.getHeaders(),
+                    },
+                });
 
-    const imageUrl = uploadResponse.data[0].src;
-    const result = {
-      endpoint: base+'/api/diff?prompt='+encodeURIComponent(prompt),
-      status: 200,
-      url: `https://telegra.ph${imageUrl}`
-    };
-    const red = Buffer.from(JSON.stringify(result)).toString('base64');
-    res.redirect(succes + red);
-  } catch (uploadError) {
-    console.error('Upload to Telegra.ph failed:', uploadError.message);
-    return res.redirect(failed);
-  }
+                const telegraphUrl = response.data[0].src;
+
+                const json = {
+                    endpoint: base+'/api/dalle-v1?prompt='+encodeURIComponent(prompt),
+                    code: 200,
+                    status: true,
+                    prompt,
+                    model: "DALL·E",
+                    images: [`https://telegra.ph${telegraphUrl}`]
+                };
+              const red = Buffer.from(JSON.stringify(json)).toString('base64');
+              return res.redirect(succes + red);
+            } catch (uploadError) {
+                console.error('Error uploading to Telegraph:', uploadError);
+                return res.redirect(failed);
+            }
+        }
+    });
 });
-
 
 app.get('/count', (req, res) => {
   const currentDate = new Date().getDate();
