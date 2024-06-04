@@ -79,7 +79,7 @@ app.get('/alicia', (req, res) => {
 
             chatHistory[userId].push(assistantMessage);
             const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt};
-            const red = Buffer.from(JSON.stringify(json,'utf-8')).toString('base64');
+        const red = encodeURIComponent(JSON.stringify(json));
             res.redirect(succes+red);
         }
     });
@@ -92,7 +92,7 @@ app.get('/dalle-mini', (req, res) => {
         return res.status(400).send('Prompt query parameter is required');
     }
 
-    dalle.v1({ prompt }, async (err, data) => {
+    dalle.mini({ prompt }, async (err, data) => {
         if (err) {
             console.error(err);
             return res.redirect(failed);
@@ -120,7 +120,7 @@ app.get('/dalle-mini', (req, res) => {
                     model: "DALL·E",
                     images: [`https://telegra.ph${telegraphUrl}`]
                 };
-              const red = Buffer.from(JSON.stringify(json)).toString('base64');
+              const red = encodeURIComponent(JSON.stringify(json));
               return res.redirect(succes + red);
             } catch (uploadError) {
                 console.error('Error uploading to Telegraph:', uploadError);
@@ -165,7 +165,7 @@ app.get('/dalle-v1', (req, res) => {
                     model: "DALL·E",
                     images: [`https://telegra.ph${telegraphUrl}`]
                 };
-              const red = Buffer.from(JSON.stringify(json)).toString('base64');
+                const red = encodeURIComponent(JSON.stringify(json));
               return res.redirect(succes + red);
             } catch (uploadError) {
                 console.error('Error uploading to Telegraph:', uploadError);
@@ -255,7 +255,7 @@ app.get('/image', async (req, res) => {
           status: 200,
           result: telegraPhUrl
         };
-        const red = Buffer.from(JSON.stringify(json)).toString('base64');
+          const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes + red);
       } else {
         res.redirect(failed);
@@ -287,7 +287,7 @@ app.get('/gemini', async (req, res) => {
     });
 
     const json = {endpoint:base+"/api/gemini?prompt="+encodeURIComponent(req.query.prompt),status : 200, result : response.data.candidates[0].content.parts[0].text}
-    const red = Buffer.from(JSON.stringify(json),'utf-8').toString('base64');
+      const red = encodeURIComponent(JSON.stringify(json));
   res.redirect(succes+red);
   } catch (error) {
     res.redirect(failed)
@@ -316,7 +316,7 @@ app.get('/gpt', async (req, res) => {
             });
         });
         const json = {endpoint:base+'/api/gpt?prompt='+encodeURIComponent(prompt),status:200, result:data.gpt}
-        const red = Buffer.from(JSON.stringify(json),'utf-8').toString('base64')
+        const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes+red);
     } catch (err) {
         console.log(err)
@@ -346,7 +346,8 @@ app.get('/snapsave', async (req, res) => {
       type = 'video';
     }
     const json = {endpoint: base+'/api/snapsave?url='+encodeURIComponent(req.query.url),status: 200,type, result: hasil};
-    res.redirect(succes + Buffer.from(JSON.stringify(json)).toString('base64')); 
+      const red = encodeURIComponent(JSON.stringify(json));
+    res.redirect(succes + red); 
   } catch (error) {
     console.error(error);
     res.redirect(failed);
