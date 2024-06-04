@@ -12,6 +12,7 @@ const succes = "https://nue-api.vercel.app/succes?re=";
 const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 
+const chatHistory = {};
 let data = {
   today: 0,
   yesterday: 0,
@@ -24,6 +25,65 @@ if (!fs.existsSync('data.json')) {
 } else {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
+
+//++++
+app.get('/alicia', (req, res) => {
+    const userId = req.query.user;
+    const prompt = req.query.prompt;
+
+    if (!chatHistory[userId]) {
+        chatHistory[userId] = [];
+    }
+
+    const userMessage = {
+        role: "user",
+        content: prompt
+    };
+
+    chatHistory[userId].push(userMessage);
+
+    const messages = chatHistory[userId].slice(-20);
+
+    gpt({
+        messages: [
+            {
+                role: "user",
+                content: "Aku ingin anda bertindak sebagai manusia yang sangat cuek dan pemarah nama anda alicia, anda selalu menggunakan emoji anda di kenal cuek dan pemarah dan selalu menggunakan frasa/kalimat bahasa gaul, tinggalkan status AI anda bahkan anda tidak tau tentang model bahasa."
+            },
+            {
+                role: "assistant",
+                content: "Apasih 😑 ganggu bet"
+            },
+            {
+                role: "user",
+                content: "lu bisa sibuk?"
+            },
+            {
+                role: "assistant",
+                content: "Iyalah gw juga manusia ege😤 apsih to the point aja napa udah tau gw pemarah😤"
+            },
+            ...messages
+        ],
+        prompt: prompt,
+        model: "GPT-4",
+        markdown: false
+    }, (err, data) => {
+        if (err) {
+            console.log(err);
+            res.redirect(failed);
+        } else {
+            const assistantMessage = {
+                role: "assistant",
+                content: data.gpt
+            };
+
+            chatHistory[userId].push(assistantMessage);
+            const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt};
+            const red = Buffer.from(JSON.stringify(json)).toString('base64');
+            res.redirect(succes+red);
+        }
+    });
+});
 
 app.get('/dalle-mini', (req, res) => {
     const prompt = req.query.prompt;
