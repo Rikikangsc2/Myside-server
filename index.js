@@ -79,7 +79,7 @@ app.get('/alicia', (req, res) => {
 
             chatHistory[userId].push(assistantMessage);
             const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt};
-            const red = Buffer.from(JSON.stringify(json)).toString('base64');
+            const red = Buffer.from(JSON.stringify(json,'utf-8')).toString('base64');
             res.redirect(succes+red);
         }
     });
@@ -287,7 +287,7 @@ app.get('/gemini', async (req, res) => {
     });
 
     const json = {endpoint:base+"/api/gemini?prompt="+encodeURIComponent(req.query.prompt),status : 200, result : response.data.candidates[0].content.parts[0].text}
-    const red = Buffer.from(JSON.stringify(json)).toString('base64');
+    const red = Buffer.from(JSON.stringify(json),'utf-8').toString('base64');
   res.redirect(succes+red);
   } catch (error) {
     res.redirect(failed)
@@ -316,7 +316,7 @@ app.get('/gpt', async (req, res) => {
             });
         });
         const json = {endpoint:base+'/api/gpt?prompt='+encodeURIComponent(prompt),status:200, result:data.gpt}
-        const red = Buffer.from(JSON.stringify(json)).toString('base64')
+        const red = Buffer.from(JSON.stringify(json),'utf-8').toString('base64')
         res.redirect(succes+red);
     } catch (err) {
         console.log(err)
