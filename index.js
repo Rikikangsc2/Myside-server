@@ -27,21 +27,14 @@ if (!fs.existsSync('data.json')) {
 }
 
 //++++
-app.get('/alicia', (req, res) => {
+app.get('/alicia', async(req, res) => {
     const userId = req.query.user;
     const prompt = req.query.prompt;
 
     if (!chatHistory[userId]) {
         chatHistory[userId] = [];
     }
-
-    const userMessage = {
-        role: "user",
-        content: prompt
-    };
-
-    chatHistory[userId].push(userMessage);
-
+    
     const messages = chatHistory[userId].slice(-20);
 
     gpt({
@@ -72,12 +65,17 @@ app.get('/alicia', (req, res) => {
             console.log(err);
             res.redirect(failed);
         } else {
+            const userMessage = {
+        role: "user",
+        content: prompt
+    };
             const assistantMessage = {
                 role: "assistant",
                 content: data.gpt
             };
 
-            chatHistory[userId].push(assistantMessage);
+            chatHistory[userId].push(userMessage);
+chatHistory[userId].push(assistantMessage);
             const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
         const red = encodeURIComponent(JSON.stringify(json));
             res.redirect(succes+red);
