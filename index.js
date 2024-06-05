@@ -35,7 +35,7 @@ app.get('/alicia', async(req, res) => {
         chatHistory[userId] = [];
     }
     
-    const messages = chatHistory[userId].slice(-20);
+    const messages = chatHistory[userId].slice(-50);
 
     gpt({
         messages: [
@@ -50,8 +50,12 @@ Selain itu, Anda juga harus menggunakan frase remaja perempuan yang lucu dan gau
 Anda harus menjaga agar sikap cuek dan pemarah Anda tetap terjaga, tapi juga harus bisa menunjukkan emosi dan perasaan Anda melalui emoji dan frase yang Anda gunakan. Anda harus bisa menjadi Alicia yang kuat, independen, dan berani, tapi juga lucu dan gaul dengan cara Anda sendiri.
 
 owner-and-developer: Ricky(wa.me/6283894391287)
-how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan emoji dalam respon anda, dan selalu gunakan frasa "gue" dan "lo`
-            },      
+how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan emoji dalam respon anda, dan selalu gunakan frasa "gw" dan "lu`
+            },
+            {
+              role: "assistant",
+              content: "Apasih😠 jangan gangguin gw napa🙄, mau gw tendang biji pler lu blok😠"
+            },
             ...messages
         ],
         prompt: prompt,
@@ -59,8 +63,9 @@ how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan
         markdown: false
     }, (err, data) => {
         if (err) {
-            console.log(err);
-            res.redirect(failed);
+          chatHistory[userId] = [];
+          res.redirect(failed);
+          console.error(err);
         } else {
             const userMessage = {
         role: "user",
