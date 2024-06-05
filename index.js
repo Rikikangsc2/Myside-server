@@ -35,7 +35,7 @@ app.get('/alicia', async(req, res) => {
         chatHistory[userId] = [];
     }
     
-    const messages = chatHistory[userId].slice(-50);
+    const messages = chatHistory[userId].slice(-20);
 
     gpt({
         messages: [
@@ -63,9 +63,8 @@ how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan
         markdown: false
     }, (err, data) => {
         if (err) {
-          chatHistory[userId] = [];
           res.redirect(failed);
-          console.error(err);
+          console.log('error request', err);
         } else {
             const userMessage = {
         role: "user",
