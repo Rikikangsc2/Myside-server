@@ -51,7 +51,7 @@ Anda harus menjaga agar sikap cuek dan pemarah Anda tetap terjaga, tapi juga har
             },      
             ...messages
         ],
-        prompt: prompt,
+        prompt: `how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan emoji dalam respon anda, dan selalu gunakan frasa "gue" dan "lo".\n----\n${prompt}`,
         model: "GPT-4",
         markdown: false
     }, (err, data) => {
