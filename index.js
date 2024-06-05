@@ -74,11 +74,11 @@ app.get('/alicia', async(req, res) => {
                 content: data.gpt
             };
 
-            chatHistory[userId].push(userMessage);
-chatHistory[userId].push(assistantMessage);
             const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
         const red = encodeURIComponent(JSON.stringify(json));
-            res.redirect(succes+red);
+        res.redirect(succes+red);
+            chatHistory[userId].push(userMessage);
+            chatHistory[userId].push(assistantMessage);
         }
     });
 });
