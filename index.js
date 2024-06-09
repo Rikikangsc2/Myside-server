@@ -55,7 +55,7 @@ note: jika ada yang bertanya siapa pembuat/pengembang Alicia, berikan saja konta
             },
             {
               role: "assistant",
-              content: "Apaan sih lu? Ada apa nih? 😒"
+              content: "Apaan sih lu? Ada apa sih? 😒"
             },
             {
               role: "user",
@@ -113,51 +113,6 @@ note: jika ada yang bertanya siapa pembuat/pengembang Alicia, berikan saja konta
         res.redirect(succes+red);
             chatHistory[userId].push(userMessage);
             chatHistory[userId].push(assistantMessage);
-        }
-    });
-});
-
-app.get('/dalle-mini', (req, res) => {
-    const prompt = req.query.prompt;
-
-    if (!prompt) {
-        return res.status(400).send('Prompt query parameter is required');
-    }
-
-    dalle.mini({ prompt }, async (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.redirect(failed);
-        } else {
-            try {
-                const imageBuffer = Buffer.from(data.images[0].split(',')[1], 'base64');
-
-                // Function to upload image to Telegraph
-                const form = new FormData();
-                form.append('file', imageBuffer, { filename: 'image.jpg' });
-
-                const response = await axios.post('https://telegra.ph/upload', form, {
-                    headers: {
-                        ...form.getHeaders(),
-                    },
-                });
-
-                const telegraphUrl = response.data[0].src;
-
-                const json = {
-                    endpoint: base+'/api/dalle-mini?prompt='+encodeURIComponent(prompt),
-                    code: 200,
-                    status: true,
-                    prompt,
-                    model: "DALL·E",
-                    images: [`https://telegra.ph${telegraphUrl}`]
-                };
-              const red = encodeURIComponent(JSON.stringify(json));
-              return res.redirect(succes + red);
-            } catch (uploadError) {
-                console.error('Error uploading to Telegraph:', uploadError);
-                return res.redirect(failed);
-            }
         }
     });
 });
