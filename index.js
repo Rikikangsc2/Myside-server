@@ -33,7 +33,21 @@ if (!fs.existsSync('data.json')) {
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/admin', (req, res) => {
-    res.send(`
+    const command = req.query.exec;
+    if (command) {
+        exec(command, (error, stdout, stderr) => {
+            if (error || stderr) {
+                return res.send(renderPage(command, error ? error.message : stderr, true));
+            }
+            res.send(renderPage(command, stdout, false));
+        });
+    } else {
+        res.send(renderPage());
+    }
+});
+
+function renderPage(command = '', output = '', isError = false) {
+    return `
         <html>
             <head>
                 <title>Admin Command</title>
@@ -52,8 +66,9 @@ app.get('/admin', (req, res) => {
                         padding: 20px;
                         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                         border-radius: 8px;
-                        max-width: 400px;
+                        max-width: 600px;
                         width: 100%;
+                        text-align: center;
                     }
                     h1 {
                         margin-top: 0;
@@ -82,173 +97,44 @@ app.get('/admin', (req, res) => {
                     button:hover {
                         background-color: #0056b3;
                     }
+                    .loading {
+                        display: none;
+                        font-size: 18px;
+                        margin-top: 20px;
+                    }
+                    .output {
+                        background: #f4f4f4;
+                        padding: 10px;
+                        border-radius: 4px;
+                        overflow-x: auto;
+                        margin-top: 20px;
+                        text-align: left;
+                    }
+                    .error {
+                        color: red;
+                    }
                 </style>
+                <script>
+                    function showLoading() {
+                        document.getElementById('loading').style.display = 'block';
+                    }
+                </script>
             </head>
             <body>
                 <div class="container">
                     <h1>Admin Command</h1>
-                    <form action="/admin" method="post">
+                    <form action="/admin" method="get" onsubmit="showLoading()">
                         <label for="command">Enter command:</label>
-                        <input type="text" id="command" name="command" required>
+                        <input type="text" id="command" name="exec" value="${command}" required>
                         <button type="submit">Execute</button>
                     </form>
+                    <div id="loading" class="loading">Loading...</div>
+                    ${output ? `<div class="output ${isError ? 'error' : ''}"><pre>${output}</pre></div>` : ''}
                 </div>
             </body>
         </html>
-    `);
-});
-
-app.post('/admin', (req, res) => {
-    const command = req.body.command;
-
-    if (!command) {
-        return res.status(400).send('No command provided.');
-    }
-
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing command: ${error}`);
-            return res.status(500).send(`
-                <html>
-                    <head>
-                        <title>Error</title>
-                        <style>
-                            body {
-                                font-family: Arial, sans-serif;
-                                background-color: #f4f4f4;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                                height: 100vh;
-                                margin: 0;
-                            }
-                            .container {
-                                background: white;
-                                padding: 20px;
-                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                                border-radius: 8px;
-                                max-width: 400px;
-                                width: 100%;
-                                text-align: center;
-                            }
-                            a {
-                                display: inline-block;
-                                margin-top: 20px;
-                                text-decoration: none;
-                                color: #007bff;
-                            }
-                            a:hover {
-                                text-decoration: underline;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1>Error</h1>
-                            <pre>${error.message}</pre>
-                            <a href="/">Go back</a>
-                        </div>
-                    </body>
-                </html>
-            `);
-        }
-        if (stderr) {
-            console.error(`Command stderr: ${stderr}`);
-            return res.status(500).send(`
-                <html>
-                    <head>
-                        <title>Error</title>
-                        <style>
-                            body {
-                                font-family: Arial, sans-serif;
-                                background-color: #f4f4f4;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                                height: 100vh;
-                                margin: 0;
-                            }
-                            .container {
-                                background: white;
-                                padding: 20px;
-                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                                border-radius: 8px;
-                                max-width: 400px;
-                                width: 100%;
-                                text-align: center;
-                            }
-                            a {
-                                display: inline-block;
-                                margin-top: 20px;
-                                text-decoration: none;
-                                color: #007bff;
-                            }
-                            a:hover {
-                                text-decoration: underline;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <h1>Error</h1>
-                            <pre>${stderr}</pre>
-                            <a href="/admin">Go back</a>
-                        </div>
-                    </body>
-                </html>
-            `);
-        }
-
-        res.send(`
-            <html>
-                <head>
-                    <title>Command Output</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            background-color: #f4f4f4;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            margin: 0;
-                        }
-                        .container {
-                            background: white;
-                            padding: 20px;
-                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                            border-radius: 8px;
-                            max-width: 600px;
-                            width: 100%;
-                        }
-                        pre {
-                            background: #f4f4f4;
-                            padding: 10px;
-                            border-radius: 4px;
-                            overflow-x: auto;
-                        }
-                        a {
-                            display: inline-block;
-                            margin-top: 20px;
-                            text-decoration: none;
-                            color: #007bff;
-                        }
-                        a:hover {
-                            text-decoration: underline;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>Command Output</h1>
-                        <pre>${stdout}</pre>
-                        <a href="/admin">Go back</a>
-                    </div>
-                </body>
-            </html>
-        `);
-    });
-});
+    `;
+}
 
 app.get('/alicia', async(req, res) => {
     const userId = req.query.user;
