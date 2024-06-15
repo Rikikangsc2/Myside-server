@@ -215,7 +215,7 @@ app.post('/admin', (req, res) => {
                     <div class="container">
                         <h1>Command Output</h1>
                         <pre>${stdout}</pre>
-                        <a href="/admin">Go back</a>
+                        <a href="/">Go back</a>
                     </div>
                 </body>
             </html>
