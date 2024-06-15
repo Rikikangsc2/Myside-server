@@ -11,6 +11,7 @@ const FormData = require('form-data');
 const succes = "https://nue-api.vercel.app/succes?re=";
 const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
+require('./admin.js');
 
 const chatHistory = {};
 let data = {
@@ -26,7 +27,6 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
-//**
 app.get('/alicia', async(req, res) => {
     const userId = req.query.user;
     const prompt = req.query.prompt;

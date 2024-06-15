@@ -15,6 +15,7 @@
     "@bochilteam/scraper": "^4.2.4",
     "@types/node": "^18.0.6",
     "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "form-data": "^4.0.0",
     "g-i-s": "^2.1.7",
