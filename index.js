@@ -32,6 +32,54 @@ if (!fs.existsSync('data.json')) {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get('/sgpt', async(req, res) => {
+    const userId = req.query.user + 'gpt';
+    const prompt = req.query.prompt;
+
+    if (!chatHistory[userId]) {
+        chatHistory[userId] = [];
+    }
+
+    const messages = chatHistory[userId].slice(-20);
+
+    gpt({
+        messages: [
+            {
+                role: "user",
+                content: `you are NueAI you are AI made by s.id/nueapi your goal is to help answer questions and solve problems, you can interact using the language the user uses.`
+            },
+            {
+              role: "assistant",
+              content: "hello, how can I help you today?☺️"
+            },
+            ...messages
+        ],
+        prompt: prompt,
+        model: "GPT-4",
+        markdown: false
+    }, (err, data) => {
+        if (err) {
+          res.redirect(failed);
+          console.log('error request', err);
+        } else {
+            const userMessage = {
+        role: "user",
+        content: prompt
+    };
+            const assistantMessage = {
+                role: "assistant",
+                content: data.gpt
+            };
+
+            const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
+        const red = encodeURIComponent(JSON.stringify(json));
+        res.redirect(succes+red);
+            chatHistory[userId].push(userMessage);
+            chatHistory[userId].push(assistantMessage);
+        }
+    });
+});
+
 app.get('/admin', (req, res) => {
     const command = req.query.exec;
     if (command) {
