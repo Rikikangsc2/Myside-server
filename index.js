@@ -71,7 +71,7 @@ app.get('/sgpt', async(req, res) => {
                 content: data.gpt
             };
 
-            const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
+            const json = {endpoint:base+'/api/sgpt?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
         const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes+red);
             chatHistory[userId].push(userMessage);
