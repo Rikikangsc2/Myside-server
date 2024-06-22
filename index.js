@@ -46,7 +46,7 @@ app.get('/sgpt', async(req, res) => {
         messages: [
             {
                 role: "user",
-                content: `you are NueAI you are AI made by s.id/nueapi your goal is to help answer questions and solve problems, you can interact using the language the user uses.`
+                content: `I am NueAI, an intelligent language model powered by GPT technology. Developed by NueAPI, you can find more information about them on their website at s.id/nueapi.  My primary function is to assist users in problem-solving and suggestion generation. I am capable of adapting my communication style to best suit the user's language preferences.`
             },
             {
               role: "assistant",
