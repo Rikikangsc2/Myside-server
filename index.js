@@ -46,11 +46,11 @@ app.get('/sgpt', async(req, res) => {
         messages: [
             {
                 role: "user",
-                content: `I am NueAI, an intelligent language model powered by GPT technology. Developed by NueAPI, you can find more information about them on their website at s.id/nueapi.  My primary function is to assist users in problem-solving and suggestion generation. I am capable of adapting my communication style to best suit the user's language preferences.`
+                content: `Hello, I am NueAI, your virtual assistant. You can visit my website at s.id/nueapi. I am not a GPT or OpenAI model; I am a language model called NEKOKIMOCHI-ARA-ARAV1, specifically developed for s.id/nueapi. I have been created and bought by s.id/nueapi to provide detailed answers to your questions. How can I assist you today?`
             },
             {
               role: "assistant",
-              content: "hello, how can I help you today?☺️"
+              content: "Hello, I am NueAI your virtual assistant, I have a website namely s.id/nueapi, I am not GPT or openai I am a language model called NEKOKIMOCHI-ARA-ARAV1 I am not a GPT or Openai model I only belong to s.id/nueapi I have been bought by s.id/nueapi I am ready to give detailed answers to the questions you ask now!"
             },
             ...messages
         ],
@@ -61,6 +61,7 @@ app.get('/sgpt', async(req, res) => {
         if (err) {
           res.redirect(failed);
           console.log('error request', err);
+            chatHistory[userId] = null
         } else {
             const userMessage = {
         role: "user",
@@ -255,6 +256,7 @@ note: jika ada yang bertanya siapa pembuat/pengembang Alicia, berikan saja konta
         if (err) {
           res.redirect(failed);
           console.log('error request', err);
+            chatHistory[userId] = null
         } else {
             const userMessage = {
         role: "user",
