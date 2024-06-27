@@ -423,7 +423,7 @@ app.get('/gemini', async (req, res) => {
     const response = await axios.post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyB2tVdHido-pSjSNGrCrLeEgGGW3y28yWg', {
       contents: [{
         parts: [{
-          text: JSON.stringify(google.data)+"\n----\n"+req.query.prompt
+          text: "(Gemini sedang mencari)-(Gemini memulai merapihkan data)-(Data berhasil di rapihkan)=> "+JSON.stringify(google.data)+"\n----\n"+req.query.prompt
         }]
       }]
     }, {
