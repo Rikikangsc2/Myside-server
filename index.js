@@ -419,11 +419,11 @@ app.get('/gemini', async (req, res) => {
     if (!req.query.prompt) {
       return res.status(400).json({ error: 'Query parameter "q" is required' });
     }
-
+      const google = await axios.get(`https://nue-api.vercel.app/api/google?limit=15&query=+${req.query.prompt}`);
     const response = await axios.post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyB2tVdHido-pSjSNGrCrLeEgGGW3y28yWg', {
       contents: [{
         parts: [{
-          text: req.query.prompt
+          text: JSON.stringify(google.data)+"\n----\n"+req.query.prompt
         }]
       }]
     }, {
