@@ -13,6 +13,7 @@ const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
+const { removebg } = require('nayan-server');
 
 const chatHistory = {};
 let data = {
@@ -32,6 +33,21 @@ if (!fs.existsSync('data.json')) {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get('/removebg', (req, res) => {
+  const url = req.query.url;
+
+  if (!url) {
+    return res.status(400).send('URL is required');
+  }
+
+  removebg(url)
+    .then(data => {
+      res.redirect(succes+encodeURIComponent(JSON.stringify({endpoint: base+"/removebg?url="+encodeURIComponent(url), result: data.data})));
+    })
+    .catch(err => {
+      res.redirect(failed);
+    });
+});
 app.get('/sgpt', async(req, res) => {
     const userId = req.query.user + 'gpt';
     const prompt = req.query.prompt;
