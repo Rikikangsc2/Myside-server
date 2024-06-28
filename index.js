@@ -36,12 +36,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/removebg', (req, res) => {
     const url = req.query.url;
-    const apikey = req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn';
+    const apikey = req.query.apikey || '******';
     if (!url) {
         return res.status(400).json({ error: 'URL parameter is required' });
     }
 
-    Remove.FromUrl(url, apikey)
+    Remove.FromUrl(url, req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn')
         .then(response => {
             const outputPath = path.join(__dirname, 'hasil-url.png');
 
@@ -54,13 +54,15 @@ app.get('/removebg', (req, res) => {
         })
         .then(response => {
             const fileUrl = `https://telegra.ph${response.data[0].src}`;
-            const json = {endpoint: base+"/api/removebg?url="+encodeURIComponent(url)+"&apikey=", note: "Ini menggunakan beberapa apikey yang saya punya, tapi bisa saja terkena limit. Kamu bisa ambil apikey sendiri di remove.bg/api dan paste di params 'apikey'. Ini opsional, cuma buat jaga-jaga kalau saya telat update apikey. Terima kasih sudah pakai NueApis!", 
+            const json = {endpoint: base+"/api/removebg?url="+encodeURIComponent(url)+"&apikey="+apikey, note: "Ini menggunakan beberapa apikey yang saya punya, tapi bisa saja terkena limit. Kamu bisa ambil apikey sendiri di remove.bg/api dan paste di params 'apikey'. Ini opsional, cuma buat jaga-jaga kalau saya telat update apikey. Terima kasih sudah pakai NueApis!", 
                          result: fileUrl};
             const red = encodeURIComponent(JSON.stringify(json));
+            fs.unlinkSync(path.join(__dirname, 'hasil-url.png'));
             res.redirect(succes+red)
         })
         .catch(error => {
             console.error(error);
+            fs.unlinkSync(path.join(__dirname, 'hasil-url.png'));
             res.redirect(failed)
         });
 });
