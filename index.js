@@ -34,37 +34,44 @@ if (!fs.existsSync('data.json')) {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/removebg', (req, res) => {
+app.get('/removebg', async (req, res) =>{
     const url = req.query.url;
-    const apikey = req.query.apikey || '******';
+    const apikey = req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn';
+    try {
+        await Remove.FromUrl(url, apikey);
+        res.redirect('tattered-classy-comic.glitch.me/hasilremove?url=' + url + '&apikey=' + apikey)
+    } catch (error) {
+        res.redirect(failed)
+    }
+})
+app.get('/hasilremove', (req, res) => {
+    const url = req.query.url;
+    const apikey = req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn';
     if (!url) {
         return res.status(400).json({ error: 'URL parameter is required' });
     }
+    const outputPath = path.join(__dirname, 'hasil-url.png');
+    
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(outputPath));
 
-    Remove.FromUrl(url, req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn')
-        .then(response => {
-            const outputPath = path.join(__dirname, 'hasil-url.png');
-
-            const formData = new FormData();
-            formData.append('file', fs.createReadStream(outputPath));
-
-            return axios.post('https://telegra.ph/upload', formData, {
-                headers: formData.getHeaders()
-            });
-        })
-        .then(response => {
-            const fileUrl = `https://telegra.ph${response.data[0].src}`;
-            const json = {endpoint: base+"/api/removebg?url="+encodeURIComponent(url)+"&apikey="+apikey, note: "Ini menggunakan beberapa apikey yang saya punya, tapi bisa saja terkena limit. Kamu bisa ambil apikey sendiri di remove.bg/api dan paste di params 'apikey'. Ini opsional, cuma buat jaga-jaga kalau saya telat update apikey. Terima kasih sudah pakai NueApis!", 
-                         result: fileUrl};
-            const red = encodeURIComponent(JSON.stringify(json));
-            fs.unlinkSync(path.join(__dirname, 'hasil-url.png'));
-            res.redirect(succes+red)
-        })
-        .catch(error => {
-            console.error(error);
-            fs.unlinkSync(path.join(__dirname, 'hasil-url.png'));
-            res.redirect(failed)
-        });
+    axios.post('https://telegra.ph/upload', formData, {
+        headers: formData.getHeaders()
+    })
+    .then(response => {
+        const fileUrl = `https://telegra.ph${response.data[0].src}`;
+        const json = {
+            endpoint: `${base}/api/removebg?url=${encodeURIComponent(url)}&apikey=${apikey}`,
+            note: "Ini menggunakan beberapa apikey yang saya punya, tapi bisa saja terkena limit. Kamu bisa ambil apikey sendiri di remove.bg/api dan paste di params 'apikey'. Ini opsional, cuma buat jaga-jaga kalau saya telat update apikey. Terima kasih sudah pakai NueApis!",
+            result: fileUrl
+        };
+        const red = encodeURIComponent(JSON.stringify(json));
+        res.redirect(succes + red);
+    })
+    .catch(error => {
+        console.error(error);
+        res.redirect(failed);
+    });
 });
 app.get('/sgpt', async(req, res) => {
     const userId = req.query.user + 'gpt';
