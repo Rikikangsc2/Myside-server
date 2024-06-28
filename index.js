@@ -42,7 +42,7 @@ app.get('/removebg', (req, res) => {
 
   removebg(url)
     .then(data => {
-      res.redirect(succes+encodeURIComponent(JSON.stringify({endpoint: base+"/removebg?url="+encodeURIComponent(url), result: data.data})));
+      res.redirect(succes+encodeURIComponent(JSON.stringify({endpoint: base+"/api/removebg?url="+encodeURIComponent(url), result: data.data})));
     })
     .catch(err => {
       res.redirect(failed);
