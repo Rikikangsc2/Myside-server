@@ -13,8 +13,8 @@ const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
-const { removebg } = require('nayan-server');
-var Remove = require('removebg-id');
+const { spotify } = require('nayan-server');
+
 
 const chatHistory = {};
 let data = {
@@ -34,45 +34,21 @@ if (!fs.existsSync('data.json')) {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/removebg', async (req, res) =>{
-    const url = req.query.url;
-    const apikey = req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn';
+app.get('/spotify', async (req, res) => {
+    const q = req.query.q;
     try {
-        await Remove.FromUrl(url, apikey);
-        res.redirect('tattered-classy-comic.glitch.me/hasilremove?url=' + url + '&apikey=' + apikey)
+        const hasil = await spotify(q); 
+        const linkaudio = hasil.data.audio;
+        const riki = await axios.get(linkaudio, { responseType: 'arraybuffer' });
+        res.setHeader('Content-Disposition', 'attachment; filename=nueapi-spotify.mp3');
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.send(Buffer.from(riki.data));
     } catch (error) {
-        res.redirect(failed)
-    }
-})
-app.get('/hasilremove', (req, res) => {
-    const url = req.query.url;
-    const apikey = req.query.apikey || '2mZbr62TiNKYw3rFPPtb4BYn';
-    if (!url) {
-        return res.status(400).json({ error: 'URL parameter is required' });
-    }
-    const outputPath = path.join(__dirname, 'hasil-url.png');
-    
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(outputPath));
-
-    axios.post('https://telegra.ph/upload', formData, {
-        headers: formData.getHeaders()
-    })
-    .then(response => {
-        const fileUrl = `https://telegra.ph${response.data[0].src}`;
-        const json = {
-            endpoint: `${base}/api/removebg?url=${encodeURIComponent(url)}&apikey=${apikey}`,
-            note: "Ini menggunakan beberapa apikey yang saya punya, tapi bisa saja terkena limit. Kamu bisa ambil apikey sendiri di remove.bg/api dan paste di params 'apikey'. Ini opsional, cuma buat jaga-jaga kalau saya telat update apikey. Terima kasih sudah pakai NueApis!",
-            result: fileUrl
-        };
-        const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(succes + red);
-    })
-    .catch(error => {
-        console.error(error);
+        console.log(error);
         res.redirect(failed);
-    });
+    }
 });
+
 app.get('/sgpt', async(req, res) => {
     const userId = req.query.user + 'gpt';
     const prompt = req.query.prompt;
