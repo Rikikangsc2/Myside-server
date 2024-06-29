@@ -38,11 +38,9 @@ app.get('/spotify', async (req, res) => {
     const q = req.query.q;
     try {
         const hasil = await spotify(q); 
-        const linkaudio = hasil.data.audio;
-        const riki = await axios.get(linkaudio, { responseType: 'arraybuffer' });
-        res.setHeader('Content-Disposition', 'attachment; filename=nueapi-spotify.mp3');
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.send(Buffer.from(riki.data));
+        const json = JSON.stringify({endpoint:base+"/api/spotify?q="+encodeURIComponent(q), result: hasil.data});
+        const encodeURI = encodeURIComponent(json);
+        res.redirect(succes+encodeURI)
     } catch (error) {
         console.log(error);
         res.redirect(failed);
