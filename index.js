@@ -13,7 +13,7 @@ const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
-const { spotify } = require('nayan-server');
+const { spotify, upscale } = require('nayan-server');
 
 
 const chatHistory = {};
@@ -30,9 +30,30 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
-//********
-
 app.use(bodyParser.urlencoded({ extended: true }));
+
+//Router
+app.get('/upscale', async (req, res) => {
+  const link = req.query.url;
+  if (!link) {
+    return res.status(400).send('URL parameter is required');
+  }
+
+  try {
+    let data = await upscale(link, "1");
+    return res.json(data);
+  } catch (error) {
+    console.error(`Model 1 failed: ${error.message}`);
+    
+    try {
+      let data = await upscale(link, "2");
+      return res.json(data);
+    } catch (error) {
+      console.error(`Model 2 failed: ${error.message}`);
+      return res.status(500).send('Upscaling failed with both models');
+    }
+  }
+});
 
 app.get('/spotify', async (req, res) => {
     const q = req.query.q;
