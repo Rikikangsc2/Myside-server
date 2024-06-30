@@ -41,16 +41,20 @@ app.get('/upscale', async (req, res) => {
 
   try {
     let data = await upscale(link, "1");
-    return res.json(data);
+    const json = {endpoint:base+`/api/upscale?url=${encodeURIComponent(link)}`, model:"1", data}
+        const enc = encodeURIComponent(JSON.stringify(json));
+      return res.redirect(succes+enc);
   } catch (error) {
     console.error(`Model 1 failed: ${error.message}`);
     
     try {
       let data = await upscale(link, "2");
-      return res.json(data);
+        const json = {endpoint:base+`/api/upscale?url=${encodeURIComponent(link)}`,model:"2", data}
+        const enc = encodeURIComponent(JSON.stringify(json));
+      return res.redirect(succes+enc);
     } catch (error) {
       console.error(`Model 2 failed: ${error.message}`);
-      return res.status(500).send('Upscaling failed with both models');
+      return res.redirect(failed);
     }
   }
 });
