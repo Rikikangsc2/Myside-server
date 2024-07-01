@@ -36,12 +36,107 @@ const apikey = () => {
   const randomIndex = Math.floor(Math.random() * listapikey.length);
   return listapikey[randomIndex];
 };
+
+const sdList = async (res) => {
+    const options = {
+      method: 'GET',
+      url: 'https://api.prodia.com/v1/sd/models',
+      headers: {
+        accept: 'application/json',
+        'X-Prodia-Key': apikey()
+      }
+    };
+
+    axios
+      .request(options)
+      .then(function (response) {
+        const formattedResponse = response.data.map(item => `<li>${item}</li>`).join('');
+const htmlResponse = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Model List</title>
+</head>
+<body>
+  <h1>List model silahkan pilih semuanya work</h1>
+  <ul>
+    ${formattedResponse}
+  </ul>
+</body>
+</html>
+`;
+        res.send(htmlResponse)
+      })
+      .catch(function (error) {
+        return "error fetch list"
+      });
+  }
 //*
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 
+app.get('/sdlist',async(req,res)=>{await sdList(res)})
 //Router
+
+app.get('/text2img', async (req, res) => {
+  const model = req.query.model;
+  const prompt = req.query.prompt;
+  if (!prompt) {
+    return res.status(400).send('Prompt parameter is required');
+  }
+  if (!model) {
+    res.redirect(failed)
+  }
+
+  try {
+    const options = {
+      method: 'POST',
+      url: 'https://api.prodia.com/v1/sd/generate',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'X-Prodia-Key': apikey()
+      },
+      data: {
+        prompt: prompt
+      }
+    };
+
+    const apiResponse = await axios(options);
+    const data = apiResponse.data;
+
+    let data2;
+    let status = 'pending';
+
+    while (status !== 'succeeded') {
+      const options2 = {
+        method: 'GET',
+        url: `https://api.prodia.com/v1/job/${data.job}`,
+        headers: {
+          accept: 'application/json',
+          'X-Prodia-Key': apikey()
+        }
+      };
+
+      const response2 = await axios.request(options2);
+      data2 = response2.data;
+      status = data2.status;
+
+      if (status !== 'succeeded') {
+        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+
+    const json = { endpoint: `${base}/api/text2img?prompt=${encodeURIComponent(prompt)}&model=${model}`, data: data2 };
+    const enc = encodeURIComponent(JSON.stringify(json));
+    return res.redirect(`${succes}${enc}`);
+  } catch (error) {
+    console.error(`generate failed: ${error.message}`);
+    return res.redirect(failed);
+  }
+});
 app.get('/upscale', async (req, res) => {
   const link = req.query.url;
   if (!link) {
