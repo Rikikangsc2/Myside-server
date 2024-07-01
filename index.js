@@ -631,51 +631,6 @@ note: jika ada yang bertanya siapa pembuat/pengembang Alicia, berikan saja konta
     });
 });
 
-app.get('/dalle-v1', (req, res) => {
-    const prompt = req.query.prompt;
-
-    if (!prompt) {
-        return res.status(400).send('Prompt query parameter is required');
-    }
-
-    dalle.v1({ prompt }, async (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.redirect(failed);
-        } else {
-            try {
-                const imageBuffer = Buffer.from(data.images[0].split(',')[1], 'base64');
-
-                // Function to upload image to Telegraph
-                const form = new FormData();
-                form.append('file', imageBuffer, { filename: 'image.jpg' });
-
-                const response = await axios.post('https://telegra.ph/upload', form, {
-                    headers: {
-                        ...form.getHeaders(),
-                    },
-                });
-
-                const telegraphUrl = response.data[0].src;
-
-                const json = {
-                    endpoint: base+'/api/dalle-v1?prompt='+encodeURIComponent(prompt),
-                    code: 200,
-                    status: true,
-                    prompt,
-                    model: "DALL·E",
-                    images: [`https://telegra.ph${telegraphUrl}`]
-                };
-                const red = encodeURIComponent(JSON.stringify(json));
-              return res.redirect(succes + red);
-            } catch (uploadError) {
-                console.error('Error uploading to Telegraph:', uploadError);
-                return res.redirect(failed);
-            }
-        }
-    });
-});
-
 app.get('/count', (req, res) => {
   const currentDate = new Date().getDate();
   if (currentDate !== data.lastDate) {
