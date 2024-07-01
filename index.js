@@ -58,7 +58,8 @@ const htmlResponse = `
   <title>Model List</title>
 </head>
 <body>
-  <h1>List model silahkan pilih semuanya work</h1>
+  <h1>List model Stable diffusion, silahkan pilih dan semuanya work</h1>
+  <h2>Example : https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors [a0f13c83]&prompt=cute+cats+hd
   <ul>
     ${formattedResponse}
   </ul>
@@ -98,9 +99,8 @@ app.get('/text2img', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-      data: {
-        prompt: prompt
-      }
+        data: {prompt: prompt, model: model}
+      
     };
 
     const apiResponse = await axios(options);
