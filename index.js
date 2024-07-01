@@ -13,8 +13,6 @@ const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
-const { spotify, upscale } = require('nayan-server');
-
 
 const chatHistory = {};
 let data = {
@@ -372,19 +370,6 @@ app.get('/upscale', async (req, res) => {
     console.error(`Upscale failed: ${error.message}`);
     return res.redirect(failed);
   }
-});
-
-app.get('/spotify', async (req, res) => {
-    const q = req.query.q;
-    try {
-        const hasil = await spotify(q); 
-        const json = JSON.stringify({endpoint:base+"/api/spotify?q="+encodeURIComponent(q), result: hasil.data});
-        const encodeURI = encodeURIComponent(json);
-        res.redirect(succes+encodeURI)
-    } catch (error) {
-        console.log(error);
-        res.redirect(failed);
-    }
 });
 
 app.get('/sgpt', async(req, res) => {
