@@ -51,7 +51,7 @@ app.get('/upscale', async (req, res) => {
   try {
     // Mengunduh gambar dari URl
     const response = await axios.get(link, { responseType: 'arraybuffer' });
-    fs.writeFileSync('image.jpeg', response.data);
+    fs.writeFileSync('hasil.jpeg', response.data);
     const imageData = await axios.get(`https://tattered-classy-comic.glitch.me/hasil.jpeg`, { responseType: 'arraybuffer' });
     const base64Image = Buffer.from(imageData.data).toString('base64');
     const options = {
