@@ -72,14 +72,106 @@ const htmlResponse = `
         return "error fetch list"
       });
   }
+const sdxlList = async (res) => {
+    const options = {
+      method: 'GET',
+      url: 'https://api.prodia.com/v1/sd/models',
+      headers: {
+        accept: 'application/json',
+        'X-Prodia-Key': apikey()
+      }
+    };
+
+    axios
+      .request(options)
+      .then(function (response) {
+        const formattedResponse = response.data.map(item => `<li>${item}</li>`).join('');
+const htmlResponse = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Model List</title>
+</head>
+<body>
+  <h1>List model Stable diffusion, silahkan pilih dan semuanya work</h1>
+  <h2>Example : https://nue-api.vercel.app/api/sdxl?model=cetusMix_Version35.safetensors [de2f2560]&prompt=cute+cats+hd</h2>
+  <ul>
+    ${formattedResponse}
+  </ul>
+</body>
+</html>
+`;
+        res.send(htmlResponse)
+      })
+      .catch(function (error) {
+        return "error fetch list"
+      });
+  }
 //*
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 
 app.get('/sdlist',async(req,res)=>{await sdList(res)})
+app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 //Router
+app.get('/sdxl', async (req, res) => {
+  const model = req.query.model;
+  const prompt = req.query.prompt;
+  if (!prompt) {
+    return res.status(400).send('Prompt parameter is required');
+  }
+  if (!model) {
+    res.redirect(failed)
+  }
 
+  try {
+    const options = {
+      method: 'POST',
+      url: 'https://api.prodia.com/v1/sdxl/generate',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'X-Prodia-Key': apikey()
+      },
+        data: {prompt: prompt, model: model}
+      
+    };
+
+    const apiResponse = await axios(options);
+    const data = apiResponse.data;
+
+    let data2;
+    let status = 'pending';
+
+    while (status !== 'succeeded') {
+      const options2 = {
+        method: 'GET',
+        url: `https://api.prodia.com/v1/job/${data.job}`,
+        headers: {
+          accept: 'application/json',
+          'X-Prodia-Key': apikey()
+        }
+      };
+
+      const response2 = await axios.request(options2);
+      data2 = response2.data;
+      status = data2.status;
+
+      if (status !== 'succeeded') {
+        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+
+    const json = { endpoint: `${base}/api/sdxl?prompt=${encodeURIComponent(prompt)}&model=${model}`, data: data2 };
+    const enc = encodeURIComponent(JSON.stringify(json));
+    return res.redirect(`${succes}${enc}`);
+  } catch (error) {
+    console.error(`generate failed: ${error.message}`);
+    return res.redirect(failed);
+  }
+});
 app.get('/text2img', async (req, res) => {
   const model = req.query.model;
   const prompt = req.query.prompt;
