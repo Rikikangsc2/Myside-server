@@ -134,7 +134,12 @@ app.get('/sdxl', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-        data: {prompt: prompt, model: model}
+        data: {cfg_scale: 7,
+    steps: 20,
+    seed: -1,
+    sampler: 'DPM++ 2M Karras',
+    model: model,
+    prompt: prompt}
       
     };
 
@@ -191,7 +196,12 @@ app.get('/text2img', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-        data: {prompt: prompt, model: model}
+        data: {cfg_scale: 7,
+    steps: 20,
+    seed: -1,
+    sampler: 'DPM++ 2M Karras',
+    model: model,
+    prompt: prompt}
       
     };
 
