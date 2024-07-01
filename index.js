@@ -108,7 +108,7 @@ app.get('/sgpt', async(req, res) => {
         if (err) {
           res.redirect(failed);
           console.log('error request', err);
-            chatHistory[userId] = null
+            chatHistory[userId] = [];
         } else {
             const userMessage = {
         role: "user",
@@ -303,7 +303,7 @@ note: jika ada yang bertanya siapa pembuat/pengembang Alicia, berikan saja konta
         if (err) {
           res.redirect(failed);
           console.log('error request', err);
-            chatHistory[userId] = null
+            chatHistory[userId] = [];
         } else {
             const userMessage = {
         role: "user",
