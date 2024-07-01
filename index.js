@@ -30,7 +30,7 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
-const listapikey = ["8f62a0ea-cd83-4003-b809-6803bf9dd619"]
+const listapikey = ["8f62a0ea-cd83-4003-b809-6803bf9dd619","09c4a774-bf77-474a-b09b-45d63005160b"]
 
 const apikey = () => {
   const randomIndex = Math.floor(Math.random() * listapikey.length);
