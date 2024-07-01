@@ -333,8 +333,8 @@ app.get('/upscale', async (req, res) => {
         'X-Prodia-Key': apikey()
       },
       data: {
-        resize: 2,
-        model: 'ScuNET GAN',
+        resize: 4, 
+        model: 'SwinIR 4x',
         imageData: base64Image
       }
     };
