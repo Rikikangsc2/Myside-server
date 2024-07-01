@@ -20,8 +20,6 @@
     "form-data": "^4.0.0",
     "g-i-s": "^2.1.7",
     "gpti": "github:Rikikangsc2/gpti-2.0.1",
-    "nayan-server": "^2.3.7",
-    "removebg-id": "^2.0.1",
     "ytdl-core": "^4.11.5"
   },
   "description": "side server"
