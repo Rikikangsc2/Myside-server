@@ -75,7 +75,7 @@ const htmlResponse = `
 const sdxlList = async (res) => {
     const options = {
       method: 'GET',
-      url: 'https://api.prodia.com/v1/sd/models',
+      url: 'https://api.prodia.com/v1/sdxl/models',
       headers: {
         accept: 'application/json',
         'X-Prodia-Key': apikey()
@@ -94,7 +94,7 @@ const htmlResponse = `
 </head>
 <body>
   <h1>List model Stable diffusion, silahkan pilih dan semuanya work</h1>
-  <h2>Example : https://nue-api.vercel.app/api/sdxl?model=cetusMix_Version35.safetensors [de2f2560]&prompt=cute+cats+hd</h2>
+  <h2>Example : https://nue-api.vercel.app/api/sdxl?model=animagineXLV3_v30.safetensors [75f2f05b]&prompt=cute+cats+hd</h2>
   <ul>
     ${formattedResponse}
   </ul>
