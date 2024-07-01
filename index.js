@@ -30,7 +30,10 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
+//*
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 
 //Router
 app.get('/upscale', async (req, res) => {
@@ -40,18 +43,22 @@ app.get('/upscale', async (req, res) => {
   }
 
   try {
-    let data = await upscale(link, "1");
-    const json = {endpoint:base+`/api/upscale?url=${encodeURIComponent(link)}`, model:"1", data}
-        const enc = encodeURIComponent(JSON.stringify(json));
-      return res.redirect(succes+enc);
+    // Mengunduh gambar dari URL
+    const response = await axios.get(link, { responseType: 'arraybuffer' });
+    fs.writeFileSync('hasil.jpeg', response.data);
+
+    let data = await upscale('https://tattered-classy-comic.glitch.me/hasil.jpeg', "1");
+    const json = { endpoint: base + `/api/upscale?url=${encodeURIComponent(link)}`, model: "1", data };
+    const enc = encodeURIComponent(JSON.stringify(json));
+    return res.redirect(succes + enc);
   } catch (error) {
     console.error(`Model 1 failed: ${error.message}`);
-    
+
     try {
-      let data = await upscale(link, "2");
-        const json = {endpoint:base+`/api/upscale?url=${encodeURIComponent(link)}`,model:"2", data}
-        const enc = encodeURIComponent(JSON.stringify(json));
-      return res.redirect(succes+enc);
+      let data = await upscale('https://tattered-classy-comic.glitch.me/hasil.jpeg', "2");
+      const json = { endpoint: base + `/api/upscale?url=${encodeURIComponent(link)}`, model: "2", data };
+      const enc = encodeURIComponent(JSON.stringify(json));
+      return res.redirect(succes + enc);
     } catch (error) {
       console.error(`Model 2 failed: ${error.message}`);
       return res.redirect(failed);
