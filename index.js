@@ -59,7 +59,7 @@ const htmlResponse = `
 </head>
 <body>
   <h1>List model Stable diffusion, silahkan pilih dan semuanya work</h1>
-  <h2>Example : https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors [a0f13c83]&prompt=cute+cats+hd
+  <h2>Example : https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors [a0f13c83]&prompt=cute+cats+hd</h2>
   <ul>
     ${formattedResponse}
   </ul>
