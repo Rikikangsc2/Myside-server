@@ -170,8 +170,8 @@ app.get('/anidif', async (req, res) => {
       status = data2.status;
 
       if (status !== 'succeeded') {
-        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(`Current status: ${status}. Waiting for 10 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
     }
 
@@ -235,8 +235,8 @@ app.get('/sdxl', async (req, res) => {
       status = data2.status;
 
       if (status !== 'succeeded') {
-        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(`Current status: ${status}. Waiting for 10 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
     }
 
@@ -299,8 +299,8 @@ app.get('/text2img', async (req, res) => {
       status = data2.status;
 
       if (status !== 'succeeded') {
-        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(`Current status: ${status}. Waiting for 10 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
     }
 
@@ -360,8 +360,8 @@ app.get('/upscale', async (req, res) => {
       status = data2.status;
 
       if (status !== 'succeeded') {
-        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(`Current status: ${status}. Waiting for 10 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 10000));
       }
     }
 
