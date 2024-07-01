@@ -30,6 +30,12 @@ if (!fs.existsSync('data.json')) {
   data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 }
 
+const listapikey = ["8f62a0ea-cd83-4003-b809-6803bf9dd619"]
+
+const apikey = () => {
+  const randomIndex = Math.floor(Math.random() * listapikey.length);
+  return listapikey[randomIndex];
+};
 //*
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -43,26 +49,58 @@ app.get('/upscale', async (req, res) => {
   }
 
   try {
-    // Mengunduh gambar dari URL
+    // Mengunduh gambar dari URl
     const response = await axios.get(link, { responseType: 'arraybuffer' });
-    fs.writeFileSync('hasil.jpeg', response.data);
+    fs.writeFileSync('image.jpeg', response.data);
+    const imageData = await axios.get(`https://tattered-classy-comic.glitch.me/hasil.jpeg`, { responseType: 'arraybuffer' });
+    const base64Image = Buffer.from(imageData.data).toString('base64');
+    const options = {
+      method: 'POST',
+      url: 'https://api.prodia.com/v1/upscale',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'X-Prodia-Key': apikey()
+      },
+      data: {
+        resize: 2,
+        model: 'ScuNET GAN',
+        imageData: base64Image
+      }
+    };
 
-    let data = await upscale('https://tattered-classy-comic.glitch.me/hasil.jpeg', "1");
-    const json = { endpoint: base + `/api/upscale?url=${encodeURIComponent(link)}`, model: "1", data };
-    const enc = encodeURIComponent(JSON.stringify(json));
-    return res.redirect(succes + enc);
-  } catch (error) {
-    console.error(`Model 1 failed: ${error.message}`);
+    const apiResponse = await axios(options);
+    const data = apiResponse.data;
 
-    try {
-      let data = await upscale('https://tattered-classy-comic.glitch.me/hasil.jpeg', "2");
-      const json = { endpoint: base + `/api/upscale?url=${encodeURIComponent(link)}`, model: "2", data };
-      const enc = encodeURIComponent(JSON.stringify(json));
-      return res.redirect(succes + enc);
-    } catch (error) {
-      console.error(`Model 2 failed: ${error.message}`);
-      return res.redirect(failed);
+    let data2;
+    let status = 'pending';
+
+    while (status !== 'succeeded') {
+      const options2 = {
+        method: 'GET',
+        url: `https://api.prodia.com/v1/job/${data.job}`,
+        headers: {
+          accept: 'application/json',
+          'X-Prodia-Key': apikey()
+        }
+      };
+
+      const response2 = await axios.request(options2);
+      data2 = response2.data;
+      status = data2.status;
+
+      if (status !== 'succeeded') {
+        console.log(`Current status: ${status}. Waiting for 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
     }
+
+    const json = { endpoint: `${base}/api/upscale?url=${encodeURIComponent(link)}`, data: data2 };
+    const enc = encodeURIComponent(JSON.stringify(json));
+    return res.redirect(`${succes}${enc}`);
+  } catch (error) {
+    console.error(`Upscale failed: ${error.message}`);
+    return res.redirect(failed);
   }
 });
 
