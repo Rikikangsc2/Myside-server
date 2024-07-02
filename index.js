@@ -134,8 +134,8 @@ app.get('/anidif', async (req, res) => {
         'X-Prodia-Key': apikey()
       },
         data: {
-    width: 800,
-    height: 600,
+    width: 768,
+    height: 1024,
     sampler: 'DPM++ 2M Karras',
     upscale: true,
     seed: -1,
@@ -200,8 +200,8 @@ app.get('/sdxl', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-        data: {width: 800,
-    height: 600,
+        data: {width: 768,
+    height: 1024,
     sampler: 'DPM++ 2M Karras',
     upscale: true,
     seed: -1,
@@ -265,8 +265,8 @@ app.get('/text2img', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-        data: {width: 800,
-    height: 600,
+        data: {width: 768,
+    height: 1024,
     sampler: 'DPM++ 2M Karras',
     upscale: true,
     seed: -1,
@@ -331,7 +331,7 @@ app.get('/upscale', async (req, res) => {
         'X-Prodia-Key': apikey()
       },
       data: {
-        resize: 4, 
+        resize: 2, 
         model: 'SwinIR 4x',
         imageData: base64Image
       }
