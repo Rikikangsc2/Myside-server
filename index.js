@@ -35,193 +35,6 @@ const apikey = () => {
   return listapikey[randomIndex];
 };
 
-const sdList = async (res) => {
-  const options = {
-      method: 'GET',
-      url: 'https://api.prodia.com/v1/sd/models',
-      headers: {
-          accept: 'application/json',
-          'X-Prodia-Key': apikey()
-      }
-  };
-
-  axios
-      .request(options)
-      .then(function (response) {
-          const formattedResponse = response.data.map(item => `<li>${item} <button onclick="copyToClipboard('${item}')">Copy</button></li>`).join('');
-          const htmlResponse = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Model List</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-  <div class="container">
-      <h1 class="mt-5">List model Stable Diffusion</h1>
-      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
-      <div id="loading" style="display: none;" class="text-center">
-          <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
-          </div>
-          <p>Loading...</p>
-      </div>
-      <h2 class="mt-3">Ex Diffusion: <a href="javascript:void(0);" id="exDiffusion">https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors&prompt=cute+cats+hd</a></h2>
-      <h2>Ex Anime Diff: <a href="javascript:void(0);" id="exAnimeDiff">https://nue-api.vercel.app/api/anidif?model=anythingV5_PrtRE.safetensors&prompt=cute+cats+hd</a></h2>
-      <form id="inputForm" class="mt-4">
-          <div class="mb-3">
-              <label for="model" class="form-label">Model</label>
-              <input type="text" class="form-control" id="model" required>
-          </div>
-          <div class="mb-3">
-              <label for="prompt" class="form-label">Prompt</label>
-              <input type="text" class="form-control" id="prompt" required>
-          </div>
-          <div class="mb-3">
-              <label for="type" class="form-label">Type</label>
-              <select class="form-select" id="type" required>
-                  <option value="" disabled selected>Select type</option>
-                  <option value="text2img">Stable Diffusion</option>
-                  <option value="anidif">Anime Diffusion</option>
-              </select>
-          </div>
-          <button type="button" id="goButton" class="btn btn-primary" disabled>Go</button>
-      </form>
-      <ul class="mt-4">
-          ${formattedResponse}
-      </ul>
-  </div>
-  <script>
-      function copyToClipboard(text) {
-          navigator.clipboard.writeText(text);
-          alert('Copied to clipboard');
-      }
-
-      function updateLink() {
-          const model = $('#model').val().trim();
-          const prompt = $('#prompt').val().trim();
-          const type = $('#type').val();
-          if (model && prompt && type) {
-              $('#goButton').prop('disabled', false);
-              $('#exDiffusion').attr('href', \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`);
-          } else {
-              $('#goButton').prop('disabled', true);
-          }
-      }
-
-      $('#model, #prompt, #type').on('input', updateLink);
-
-      $('#goButton').on('click', function() {
-          const model = $('#model').val().trim();
-          const prompt = $('#prompt').val().trim();
-          const type = $('#type').val();
-          if (model && prompt && type) {
-              $('#loading').show();
-              setTimeout(() => {
-                  window.location.href = \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`;
-              }, 1000); // Simulating a delay for loading spinner visibility
-          }
-      });
-  </script>
-</body>
-</html>
-`;
-          res.send(htmlResponse);
-      })
-      .catch(function (error) {
-          res.send("Error fetching list");
-      });
-};
-
-const sdxlList = async (res) => {
-  const options = {
-      method: 'GET',
-      url: 'https://api.prodia.com/v1/sdxl/models',
-      headers: {
-          accept: 'application/json',
-          'X-Prodia-Key': apikey()
-      }
-  };
-
-  axios
-      .request(options)
-      .then(function (response) {
-          const formattedResponse = response.data.map(item => `<li>${item} <button onclick="copyToClipboard('${item}')">Copy</button></li>`).join('');
-          const htmlResponse = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Model List</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-  <div class="container">
-      <h1 class="mt-5">List model Stable Diffusion XL</h1>
-      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
-      <div id="loading" style="display: none;" class="text-center">
-          <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
-          </div>
-          <p>Loading...</p>
-      </div>
-      <h2 class="mt-3">Example: <a href="javascript:void(0);" id="exExample">https://nue-api.vercel.app/api/sdxl?model=animagineXLV3_v30.safetensors&prompt=cute+cats+hd</a></h2>
-      <form id="inputForm" class="mt-4">
-          <div class="mb-3">
-              <label for="model" class="form-label">Model</label>
-              <input type="text" class="form-control" id="model" required>
-          </div>
-          <div class="mb-3">
-              <label for="prompt" class="form-label">Prompt</label>
-              <input type="text" class="form-control" id="prompt" required>
-          </div>
-          <button type="button" id="goButton" class="btn btn-primary" disabled>Go</button>
-      </form>
-      <ul class="mt-4">
-          ${formattedResponse}
-      </ul>
-  </div>
-  <script>
-      function copyToClipboard(text) {
-          navigator.clipboard.writeText(text);
-          alert('Copied to clipboard');
-      }
-
-      function updateLink() {
-          const model = $('#model').val().trim();
-          const prompt = $('#prompt').val().trim();
-          if (model && prompt) {
-              $('#goButton').prop('disabled', false);
-              $('#exExample').attr('href', \`https://nue-api.vercel.app/api/sdxl?model=\${model}&prompt=\${prompt}\`);
-          } else {
-              $('#goButton').prop('disabled', true);
-          }
-      }
-
-      $('#model, #prompt').on('input', updateLink);
-
-      $('#goButton').on('click', function() {
-          const model = $('#model').val().trim();
-          const prompt = $('#prompt').val().trim();
-          if (model && prompt) {
-              $('#loading').show();
-              setTimeout(() => {
-                  window.location.href = \`https://nue-api.vercel.app/api/sdxl?model=\${model}&prompt=\${prompt}\`;
-              }, 1000); // Simulating a delay for loading spinner visibility
-          }
-      });
-  </script>
-</body>
-</html>
-`;
-          res.send(htmlResponse);
-      })
-      .catch(function (error) {
-          res.send("Error fetching list");
-      });
-};
-
 //*
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -930,6 +743,307 @@ app.get('/yt-mp4', async (req, res) => {
     res.setHeader('Content-Type', 'video/mp4');
     ytdl(url, { filter: 'videoandaudio' }).pipe(res);
 });
+
+const sdList = async (res) => {
+  const options = {
+      method: 'GET',
+      url: 'https://api.prodia.com/v1/sd/models',
+      headers: {
+          accept: 'application/json',
+          'X-Prodia-Key': apikey()
+      }
+  };
+
+  axios
+      .request(options)
+      .then(function (response) {
+          const formattedResponse = response.data.map(item => `<li>${item} <button onclick="copyToClipboard('${item}')">Copy</button></li>`).join('');
+          const htmlResponse = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Model List</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(to right, #ffecd2, #fcb69f);
+          color: #333;
+      }
+      .container {
+          padding: 20px;
+          max-width: 800px;
+          margin: auto;
+      }
+      h1, h2 {
+          text-align: center;
+          margin-bottom: 20px;
+      }
+      ul {
+          list-style-type: none;
+          padding: 0;
+      }
+      li {
+          background: #fff;
+          margin: 10px 0;
+          padding: 10px;
+          border-radius: 5px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+      button {
+          background: #ff6f61;
+          border: none;
+          padding: 10px;
+          border-radius: 5px;
+          color: white;
+          cursor: pointer;
+      }
+      button:hover {
+          background: #ff3b2e;
+      }
+      .spinner-border {
+          width: 3rem;
+          height: 3rem;
+      }
+      #loading {
+          margin: 20px 0;
+      }
+      @media (max-width: 600px) {
+          h1, h2 {
+              font-size: 1.5rem;
+          }
+          button {
+              padding: 5px;
+          }
+      }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container">
+      <h1>List Model Stable Diffusion</h1>
+      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
+      <div id="loading" style="display: none;" class="text-center">
+          <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+          </div>
+          <p>Loading...</p>
+      </div>
+      <h2>Ex Diffusion: <a href="javascript:void(0);" id="exDiffusion">https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors&prompt=cute+cats+hd</a></h2>
+      <h2>Ex Anime Diff: <a href="javascript:void(0);" id="exAnimeDiff">https://nue-api.vercel.app/api/anidif?model=anythingV5_PrtRE.safetensors&prompt=cute+cats+hd</a></h2>
+      <form id="inputForm" class="mt-4">
+          <div class="mb-3">
+              <label for="model" class="form-label">Model</label>
+              <input type="text" class="form-control" id="model" required>
+          </div>
+          <div class="mb-3">
+              <label for="prompt" class="form-label">Prompt</label>
+              <input type="text" class="form-control" id="prompt" required>
+          </div>
+          <div class="mb-3">
+              <label for="type" class="form-label">Type</label>
+              <select class="form-select" id="type" required>
+                  <option value="" disabled selected>Select type</option>
+                  <option value="text2img">Stable Diffusion</option>
+                  <option value="anidif">Anime Diffusion</option>
+              </select>
+          </div>
+          <button type="button" id="goButton" class="btn btn-primary" disabled>Go</button>
+      </form>
+      <ul class="mt-4">
+          ${formattedResponse}
+      </ul>
+  </div>
+  <script>
+      function copyToClipboard(text) {
+          navigator.clipboard.writeText(text);
+          alert('Copied to clipboard');
+      }
+
+      function updateLink() {
+          const model = $('#model').val().trim();
+          const prompt = $('#prompt').val().trim();
+          const type = $('#type').val();
+          if (model && prompt && type) {
+              $('#goButton').prop('disabled', false);
+              $('#exDiffusion').attr('href', \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`);
+          } else {
+              $('#goButton').prop('disabled', true);
+          }
+      }
+
+      $('#model, #prompt, #type').on('input', updateLink);
+
+      $('#goButton').on('click', function() {
+          const model = $('#model').val().trim();
+          const prompt = $('#prompt').val().trim();
+          const type = $('#type').val();
+          if (model && prompt && type) {
+              $('#loading').show();
+              setTimeout(() => {
+                  window.location.href = \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`;
+              }, 1000); // Simulating a delay for loading spinner visibility
+          }
+      });
+  </script>
+</body>
+</html>
+`;
+          res.send(htmlResponse);
+      })
+      .catch(function (error) {
+          res.send("Error fetching list");
+      });
+};
+
+const sdxlList = async (res) => {
+  const options = {
+      method: 'GET',
+      url: 'https://api.prodia.com/v1/sdxl/models',
+      headers: {
+          accept: 'application/json',
+          'X-Prodia-Key': apikey()
+      }
+  };
+
+  axios
+      .request(options)
+      .then(function (response) {
+          const formattedResponse = response.data.map(item => `<li>${item} <button onclick="copyToClipboard('${item}')">Copy</button></li>`).join('');
+          const htmlResponse = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Model List</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(to right, #ffecd2, #fcb69f);
+          color: #333;
+      }
+      .container {
+          padding: 20px;
+          max-width: 800px;
+          margin: auto;
+      }
+      h1, h2 {
+          text-align: center;
+          margin-bottom: 20px;
+      }
+      ul {
+          list-style-type: none;
+          padding: 0;
+      }
+      li {
+          background: #fff;
+          margin: 10px 0;
+          padding: 10px;
+          border-radius: 5px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+      button {
+          background: #ff6f61;
+          border: none;
+          padding: 10px;
+          border-radius: 5px;
+          color: white;
+          cursor: pointer;
+      }
+      button:hover {
+          background: #ff3b2e;
+      }
+      .spinner-border {
+          width: 3rem;
+          height: 3rem;
+      }
+      #loading {
+          margin: 20px 0;
+      }
+      @media (max-width: 600px) {
+          h1, h2 {
+              font-size: 1.5rem;
+          }
+          button {
+              padding: 5px;
+          }
+      }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container">
+      <h1>List Model Stable Diffusion XL</h1>
+      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
+      <div id="loading" style="display: none;" class="text-center">
+          <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+          </div>
+          <p>Loading...</p>
+      </div>
+      <h2>Example: <a href="javascript:void(0);" id="exExample">https://nue-api.vercel.app/api/sdxl?model=animagineXLV3_v30.safetensors&prompt=cute+cats+hd</a></h2>
+      <form id="inputForm" class="mt-4">
+          <div class="mb-3">
+              <label for="model" class="form-label">Model</label>
+              <input type="text" class="form-control" id="model" required>
+          </div>
+          <div class="mb-3">
+              <label for="prompt" class="form-label">Prompt</label>
+              <input type="text" class="form-control" id="prompt" required>
+          </div>
+          <button type="button" id="goButton" class="btn btn-primary" disabled>Go</button>
+      </form>
+      <ul class="mt-4">
+          ${formattedResponse}
+      </ul>
+  </div>
+  <script>
+      function copyToClipboard(text) {
+          navigator.clipboard.writeText(text);
+          alert('Copied to clipboard');
+      }
+
+      function updateLink() {
+          const model = $('#model').val().trim();
+          const prompt = $('#prompt').val().trim();
+          if (model && prompt) {
+              $('#goButton').prop('disabled', false);
+              $('#exExample').attr('href', \`https://nue-api.vercel.app/api/sdxl?model=\${model}&prompt=\${prompt}\`);
+          } else {
+              $('#goButton').prop('disabled', true);
+          }
+      }
+
+      $('#model, #prompt').on('input', updateLink);
+
+      $('#goButton').on('click', function() {
+          const model = $('#model').val().trim();
+          const prompt = $('#prompt').val().trim();
+          if (model && prompt) {
+              $('#loading').show();
+              setTimeout(() => {
+                  window.location.href = \`https://nue-api.vercel.app/api/sdxl?model=\${model}&prompt=\${prompt}\`;
+              }, 1000); // Simulating a delay for loading spinner visibility
+          }
+      });
+  </script>
+</body>
+</html>
+`;
+          res.send(htmlResponse);
+      })
+      .catch(function (error) {
+          res.send("Error fetching list");
+      });
+};
 
 app.listen(3000, () => {
     console.log('Server berjalan di port 3000');
