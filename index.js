@@ -134,7 +134,7 @@ app.get('/anidif', async (req, res) => {
         'X-Prodia-Key': apikey()
       },
         data: {
-    width: 768,
+    width: 1024,
     height: 1024,
     sampler: 'DPM++ 2M Karras',
     upscale: true,
@@ -200,7 +200,7 @@ app.get('/sdxl', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-        data: {width: 768,
+        data: {width: 1024,
     height: 1024,
     sampler: 'DPM++ 2M Karras',
     upscale: true,
@@ -265,7 +265,7 @@ app.get('/text2img', async (req, res) => {
         'content-type': 'application/json',
         'X-Prodia-Key': apikey()
       },
-        data: {width: 768,
+        data: {width: 1024,
     height: 1024,
     sampler: 'DPM++ 2M Karras',
     upscale: true,
