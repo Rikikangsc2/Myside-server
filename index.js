@@ -846,7 +846,6 @@ const sdList = async (res) => {
   </div>
   <div class="container">
       <h1>List Model Stable Diffusion</h1>
-      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
       
       <form id="inputForm" class="mt-4">
           <div class="mb-3">
