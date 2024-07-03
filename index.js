@@ -103,7 +103,7 @@ app.get('/diff', async (req, res) => {
       }
     }
 
-    const json = { endpoint: `${base}/api/anidif? model=${encodeURIComponent(model)}&preset=${encodeURIComponent(preset)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
+    const json = { endpoint: `${base}/api/diffpreset? model=${encodeURIComponent(model)}&preset=${encodeURIComponent(preset)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
     const enc = encodeURIComponent(JSON.stringify(json));
     return res.redirect(`${succes}${enc}`);
   } catch (error) {
