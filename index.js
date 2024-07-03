@@ -745,20 +745,20 @@ app.get('/yt-mp4', async (req, res) => {
 });
 
 const sdList = async (res) => {
-  const options = {
-      method: 'GET',
-      url: 'https://api.prodia.com/v1/sd/models',
-      headers: {
-          accept: 'application/json',
-          'X-Prodia-Key': apikey()
-      }
-  };
+    const options = {
+        method: 'GET',
+        url: 'https://api.prodia.com/v1/sd/models',
+        headers: {
+            accept: 'application/json',
+            'X-Prodia-Key': apikey()
+        }
+    };
 
-  axios
-      .request(options)
-      .then(function (response) {
-          const formattedResponse = response.data.map(item => `<li>${item} <button onclick="copyToClipboard('${item}')">Copy</button></li>`).join('');
-          const htmlResponse = `
+    axios
+        .request(options)
+        .then(function (response) {
+            const formattedResponse = response.data.map(item => `<li>${item}</li>`).join('');
+            const htmlResponse = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -768,8 +768,8 @@ const sdList = async (res) => {
   <style>
       body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(to right, #ffecd2, #fcb69f);
-          color: #333;
+          background: #121212;
+          color: #e0e0e0;
       }
       .container {
           padding: 20px;
@@ -785,11 +785,11 @@ const sdList = async (res) => {
           padding: 0;
       }
       li {
-          background: #fff;
+          background: #1e1e1e;
           margin: 10px 0;
           padding: 10px;
           border-radius: 5px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -805,12 +805,24 @@ const sdList = async (res) => {
       button:hover {
           background: #ff3b2e;
       }
+      .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+      }
       .spinner-border {
           width: 3rem;
           height: 3rem;
       }
       #loading {
-          margin: 20px 0;
+          display: none;
       }
       @media (max-width: 600px) {
           h1, h2 {
@@ -824,15 +836,17 @@ const sdList = async (res) => {
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-  <div class="container">
-      <h1>List Model Stable Diffusion</h1>
-      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
-      <div id="loading" style="display: none;" class="text-center">
+  <div id="loading" class="overlay">
+      <div>
           <div class="spinner-border" role="status">
               <span class="visually-hidden">Loading...</span>
           </div>
           <p>Loading...</p>
       </div>
+  </div>
+  <div class="container">
+      <h1>List Model Stable Diffusion</h1>
+      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
       <h2>Ex Diffusion: <a href="javascript:void(0);" id="exDiffusion">https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors&prompt=cute+cats+hd</a></h2>
       <h2>Ex Anime Diff: <a href="javascript:void(0);" id="exAnimeDiff">https://nue-api.vercel.app/api/anidif?model=anythingV5_PrtRE.safetensors&prompt=cute+cats+hd</a></h2>
       <form id="inputForm" class="mt-4">
@@ -857,6 +871,7 @@ const sdList = async (res) => {
       <ul class="mt-4">
           ${formattedResponse}
       </ul>
+      <button id="copyAllButton" class="btn btn-secondary">Copy All</button>
   </div>
   <script>
       function copyToClipboard(text) {
@@ -884,37 +899,43 @@ const sdList = async (res) => {
           const type = $('#type').val();
           if (model && prompt && type) {
               $('#loading').show();
+              $('body').css('overflow', 'hidden');
               setTimeout(() => {
                   window.location.href = \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`;
               }, 1000); // Simulating a delay for loading spinner visibility
           }
       });
+
+      $('#copyAllButton').on('click', function() {
+          const items = ${JSON.stringify(response.data)};
+          copyToClipboard(JSON.stringify(items));
+      });
   </script>
 </body>
 </html>
 `;
-          res.send(htmlResponse);
-      })
-      .catch(function (error) {
-          res.send("Error fetching list");
-      });
+            res.send(htmlResponse);
+        })
+        .catch(function (error) {
+            res.send("Error fetching list");
+        });
 };
 
 const sdxlList = async (res) => {
-  const options = {
-      method: 'GET',
-      url: 'https://api.prodia.com/v1/sdxl/models',
-      headers: {
-          accept: 'application/json',
-          'X-Prodia-Key': apikey()
-      }
-  };
+    const options = {
+        method: 'GET',
+        url: 'https://api.prodia.com/v1/sdxl/models',
+        headers: {
+            accept: 'application/json',
+            'X-Prodia-Key': apikey()
+        }
+    };
 
-  axios
-      .request(options)
-      .then(function (response) {
-          const formattedResponse = response.data.map(item => `<li>${item} <button onclick="copyToClipboard('${item}')">Copy</button></li>`).join('');
-          const htmlResponse = `
+    axios
+        .request(options)
+        .then(function (response) {
+            const formattedResponse = response.data.map(item => `<li>${item}</li>`).join('');
+            const htmlResponse = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -924,8 +945,8 @@ const sdxlList = async (res) => {
   <style>
       body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(to right, #ffecd2, #fcb69f);
-          color: #333;
+          background: #121212;
+          color: #e0e0e0;
       }
       .container {
           padding: 20px;
@@ -941,11 +962,11 @@ const sdxlList = async (res) => {
           padding: 0;
       }
       li {
-          background: #fff;
+          background: #1e1e1e;
           margin: 10px 0;
           padding: 10px;
           border-radius: 5px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -961,12 +982,24 @@ const sdxlList = async (res) => {
       button:hover {
           background: #ff3b2e;
       }
+      .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+      }
       .spinner-border {
           width: 3rem;
           height: 3rem;
       }
       #loading {
-          margin: 20px 0;
+          display: none;
       }
       @media (max-width: 600px) {
           h1, h2 {
@@ -980,15 +1013,17 @@ const sdxlList = async (res) => {
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-  <div class="container">
-      <h1>List Model Stable Diffusion XL</h1>
-      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
-      <div id="loading" style="display: none;" class="text-center">
+  <div id="loading" class="overlay">
+      <div>
           <div class="spinner-border" role="status">
               <span class="visually-hidden">Loading...</span>
           </div>
           <p>Loading...</p>
       </div>
+  </div>
+  <div class="container">
+      <h1>List Model Stable Diffusion XL</h1>
+      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
       <h2>Example: <a href="javascript:void(0);" id="exExample">https://nue-api.vercel.app/api/sdxl?model=animagineXLV3_v30.safetensors&prompt=cute+cats+hd</a></h2>
       <form id="inputForm" class="mt-4">
           <div class="mb-3">
@@ -1004,6 +1039,7 @@ const sdxlList = async (res) => {
       <ul class="mt-4">
           ${formattedResponse}
       </ul>
+      <button id="copyAllButton" class="btn btn-secondary">Copy All</button>
   </div>
   <script>
       function copyToClipboard(text) {
@@ -1029,21 +1065,28 @@ const sdxlList = async (res) => {
           const prompt = $('#prompt').val().trim();
           if (model && prompt) {
               $('#loading').show();
+              $('body').css('overflow', 'hidden');
               setTimeout(() => {
                   window.location.href = \`https://nue-api.vercel.app/api/sdxl?model=\${model}&prompt=\${prompt}\`;
               }, 1000); // Simulating a delay for loading spinner visibility
           }
       });
+
+      $('#copyAllButton').on('click', function() {
+          const items = ${JSON.stringify(response.data)};
+          copyToClipboard(JSON.stringify(items));
+      });
   </script>
 </body>
 </html>
 `;
-          res.send(htmlResponse);
-      })
-      .catch(function (error) {
-          res.send("Error fetching list");
-      });
+            res.send(htmlResponse);
+        })
+        .catch(function (error) {
+            res.send("Error fetching list");
+        });
 };
+
 
 app.listen(3000, () => {
     console.log('Server berjalan di port 3000');
