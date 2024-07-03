@@ -168,7 +168,7 @@ app.get('/sdxl', async (req, res) => {
       }
     }
 
-    const json = { endpoint: `${base}/api/sdxl?model=${encodeURIComponent(model)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
+    const json = { endpoint: `${base}/api/sdxl?model=${model}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
     const enc = encodeURIComponent(JSON.stringify(json));
     return res.redirect(`${succes}${enc}`);
   } catch (error) {
@@ -232,7 +232,7 @@ app.get('/text2img', async (req, res) => {
       }
     }
 
-    const json = { endpoint: `${base}/api/text2img?model=${encodeURIComponent(model)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
+    const json = { endpoint: `${base}/api/text2img?model=${model}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
     const enc = encodeURIComponent(JSON.stringify(json));
     return res.redirect(`${succes}${enc}`);
   } catch (error) {
