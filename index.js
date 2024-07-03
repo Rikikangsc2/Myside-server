@@ -839,16 +839,15 @@ const sdList = async (res) => {
   <div id="loading" class="overlay">
       <div>
           <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
+              <span class="visually-hidden">⌛</span>
           </div>
-          <p>Loading...</p>
+          <p>Jangan keluar dari halaman, loading paling lama 30 detik</p>
       </div>
   </div>
   <div class="container">
       <h1>List Model Stable Diffusion</h1>
       <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
-      <h2>Ex Diffusion: <a href="javascript:void(0);" id="exDiffusion">https://nue-api.vercel.app/api/text2img?model=Realistic_Vision_V5.1.safetensors&prompt=cute+cats+hd</a></h2>
-      <h2>Ex Anime Diff: <a href="javascript:void(0);" id="exAnimeDiff">https://nue-api.vercel.app/api/anidif?model=anythingV5_PrtRE.safetensors&prompt=cute+cats+hd</a></h2>
+      
       <form id="inputForm" class="mt-4">
           <div class="mb-3">
               <label for="model" class="form-label">Model</label>
@@ -1016,15 +1015,14 @@ const sdxlList = async (res) => {
   <div id="loading" class="overlay">
       <div>
           <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
+              <span class="visually-hidden">⌛</span>
           </div>
-          <p>Loading...</p>
+          <p>Jangan keluar dari halaman, loading paling lama 30 detik</p>
       </div>
   </div>
   <div class="container">
       <h1>List Model Stable Diffusion XL</h1>
-      <p class="lead">Please do not leave this page. This process usually takes up to 30 seconds. Thank you for your patience.</p>
-      <h2>Example: <a href="javascript:void(0);" id="exExample">https://nue-api.vercel.app/api/sdxl?model=animagineXLV3_v30.safetensors&prompt=cute+cats+hd</a></h2>
+      <p class="lead"></p>
       <form id="inputForm" class="mt-4">
           <div class="mb-3">
               <label for="model" class="form-label">Model</label>
