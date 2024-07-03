@@ -43,7 +43,8 @@ app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 app.get('/sdlist',async(req,res)=>{await sdList(res)})
 app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 //Router
-app.get('/anidif', async (req, res) => {
+app.get('/diff', async (req, res) => {
+  const preset = req.query.preset;
   const model = req.query.model;
   const prompt = req.query.prompt;
   if (!prompt) {
@@ -70,7 +71,7 @@ app.get('/anidif', async (req, res) => {
     seed: -1,
     cfg_scale: 7,
     steps: 20,
-    style_preset: 'anime',
+    style_preset: preset,
     prompt: prompt,
     model: model}
       
@@ -102,7 +103,7 @@ app.get('/anidif', async (req, res) => {
       }
     }
 
-    const json = { endpoint: `${base}/api/anidif?prompt=${encodeURIComponent(prompt)}&model=${model}`, data: data2 };
+    const json = { endpoint: `${base}/api/anidif? model=${encodeURIComponent(model)}&preset=${encodeURIComponent(preset)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
     const enc = encodeURIComponent(JSON.stringify(json));
     return res.redirect(`${succes}${enc}`);
   } catch (error) {
@@ -167,7 +168,7 @@ app.get('/sdxl', async (req, res) => {
       }
     }
 
-    const json = { endpoint: `${base}/api/sdxl?prompt=${encodeURIComponent(prompt)}&model=${model}`, data: data2 };
+    const json = { endpoint: `${base}/api/sdxl?model=${encodeURIComponent(model)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
     const enc = encodeURIComponent(JSON.stringify(json));
     return res.redirect(`${succes}${enc}`);
   } catch (error) {
@@ -231,7 +232,7 @@ app.get('/text2img', async (req, res) => {
       }
     }
 
-    const json = { endpoint: `${base}/api/text2img?prompt=${encodeURIComponent(prompt)}&model=${model}`, data: data2 };
+    const json = { endpoint: `${base}/api/text2img?model=${encodeURIComponent(model)}&prompt=${encodeURIComponent(prompt)}`, data: data2 };
     const enc = encodeURIComponent(JSON.stringify(json));
     return res.redirect(`${succes}${enc}`);
   } catch (error) {
@@ -846,7 +847,7 @@ const sdList = async (res) => {
   </div>
   <div class="container">
       <h1>List Model Stable Diffusion</h1>
-      
+
       <form id="inputForm" class="mt-4">
           <div class="mb-3">
               <label for="model" class="form-label">Model</label>
@@ -861,7 +862,30 @@ const sdList = async (res) => {
               <select class="form-select" id="type" required>
                   <option value="" disabled selected>Select type</option>
                   <option value="text2img">Stable Diffusion</option>
-                  <option value="anidif">Anime Diffusion</option>
+                  <option value="diffpreset">Preset Diffusion</option>
+              </select>
+          </div>
+          <div class="mb-3" id="presetDiv" style="display:none;">
+              <label for="preset" class="form-label">Preset</label>
+              <select class="form-select" id="preset">
+                  <option value="" disabled selected>Select preset</option>
+                  <option value="enhance">Enhance</option>
+                  <option value="fantasy-art">Fantasy Art</option>
+                  <option value="isometric">Isometric</option>
+                  <option value="line-art">Line Art</option>
+                  <option value="low-poly">Low Poly</option>
+                  <option value="neon-punk">Neon Punk</option>
+                  <option value="origami">Origami</option>
+                  <option value="photographic">Photographic</option>
+                  <option value="pixel-art">Pixel Art</option>
+                  <option value="texture">Texture</option>
+                  <option value="craft-clay">Craft Clay</option>
+                  <option value="3d-model">3D Model</option>
+                  <option value="analog-film">Analog Film</option>
+                  <option value="anime">Anime</option>
+                  <option value="cinematic">Cinematic</option>
+                  <option value="comic-book">Comic Book</option>
+                  <option value="digital-art">Digital Art</option>
               </select>
           </div>
           <button type="button" id="goButton" class="btn btn-primary" disabled>Go</button>
@@ -881,25 +905,51 @@ const sdList = async (res) => {
           const model = $('#model').val().trim();
           const prompt = $('#prompt').val().trim();
           const type = $('#type').val();
-          if (model && prompt && type) {
-              $('#goButton').prop('disabled', false);
-              $('#exDiffusion').attr('href', \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`);
+          const preset = $('#preset').val();
+          if (type === "diffpreset") {
+              if (model && prompt && type && preset) {
+                  $('#goButton').prop('disabled', false);
+                  $('#exDiffusion').attr('href', \`https://nue-api.vercel.app/api/diffpreset?model=\${model}&prompt=\${prompt}&preset=\${preset}\`);
+              } else {
+                  $('#goButton').prop('disabled', true);
+              }
           } else {
-              $('#goButton').prop('disabled', true);
+              if (model && prompt && type) {
+                  $('#goButton').prop('disabled', false);
+                  $('#exDiffusion').attr('href', \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`);
+              } else {
+                  $('#goButton').prop('disabled', true);
+              }
           }
       }
 
-      $('#model, #prompt, #type').on('input', updateLink);
+      $('#model, #prompt, #type, #preset').on('input', updateLink);
+
+      $('#type').on('change', function() {
+          if ($(this).val() === 'diffpreset') {
+              $('#presetDiv').show();
+          } else {
+              $('#presetDiv').hide();
+          }
+          updateLink();
+      });
 
       $('#goButton').on('click', function() {
           const model = $('#model').val().trim();
           const prompt = $('#prompt').val().trim();
           const type = $('#type').val();
-          if (model && prompt && type) {
+          const preset = $('#preset').val();
+          let url = '';
+          if (type === 'diffpreset') {
+              url = \`https://nue-api.vercel.app/api/diffpreset?model=\${model}&prompt=\${prompt}&preset=\${preset}\`;
+          } else {
+              url = \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`;
+          }
+          if (url) {
               $('#loading').show();
               $('body').css('overflow', 'hidden');
               setTimeout(() => {
-                  window.location.href = \`https://nue-api.vercel.app/api/\${type}?model=\${model}&prompt=\${prompt}\`;
+                  window.location.href = url;
               }, 1000); // Simulating a delay for loading spinner visibility
           }
       });
