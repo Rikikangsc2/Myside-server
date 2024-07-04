@@ -13,6 +13,10 @@ const base = "https://nue-api.vercel.app";
 const gis = require('g-i-s');
 const bodyParser = require('body-parser');
 const { exec } = require('child_process');
+const { RsnChat } = require("rsnchat");
+
+const rsnchat = new RsnChat("rsnai_SQPKHQEtlKlh8s9cjovGIiOp");
+
 
 const chatHistory = {};
 let data = {
@@ -43,6 +47,18 @@ app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 app.get('/sdlist',async(req,res)=>{await sdList(res)})
 app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 //Router
+app.get('/bard', async (req, res)=>{
+    if (!req.query.text) return res.status(400).send("Masukkan parameter text");
+    try {
+    const response = await rsnchat.bard(req.query.text);
+response.message = response.message.replace(/(\*\*)/g, "*")
+    const json = {endpoint:base+'/api/bard?text='+encodeURIComponent(req.query.text),result: response.message};
+    const red = encodeURIComponent(JSON.stringify(json));
+    res.redirect(succes+red);
+    } catch (error) {
+        res.redirect(failed)
+    }
+});
 app.get('/diff', async (req, res) => {
   const preset = req.query.preset;
   const model = req.query.model;
