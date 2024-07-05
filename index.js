@@ -50,8 +50,10 @@ app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 app.get('/bard', async (req, res)=>{
     if (!req.query.text) return res.status(400).send("Masukkan parameter text");
     try {
+    const regex = /\[([^\]]+)\]\([^\)]+\)/g;
     const response = await rsnchat.bard(req.query.text);
-response.message = response.message.replace(/(\*\*)/g, "*")
+response.message = response.message.replace(/(\*\*)/g, "*");
+response.message = response.message.replace(regex, '$1');
     const json = {endpoint:base+'/api/bard?text='+encodeURIComponent(req.query.text),result: response.message};
     const red = encodeURIComponent(JSON.stringify(json));
     res.redirect(succes+red);
