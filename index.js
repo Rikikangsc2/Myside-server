@@ -622,7 +622,7 @@ app.get('/image', async (req, res) => {
     const selectedUrls = getRandomUrls(validUrls, 5);
 
     if (selectedUrls.length > 0) {
-      const json = { endpoimt:"/api/image?query="+encodeURIComponent(query), result: selectedUrls };
+      const json = { endpoimt:base+"/api/image?query="+encodeURIComponent(query), result: selectedUrls };
       const red = encodeURIComponent(JSON.stringify(json));
       res.redirect(succes + red);
     } else {
