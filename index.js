@@ -609,46 +609,22 @@ app.get('/image', async (req, res) => {
       }
     };
 
-    const getValidUrl = async () => {
-      while (urls.length > 0) {
-        const randomIndex = Math.floor(Math.random() * urls.length);
-        const url = urls.splice(randomIndex, 1)[0];
-        const validUrl = await checkUrl(url);
-        if (validUrl) {
-          return validUrl;
-        }
-      }
-      return null;
+    // Verify URLs
+    const verifiedUrls = await Promise.all(urls.map(url => checkUrl(url)));
+    const validUrls = verifiedUrls.filter(url => url !== null);
+
+    // Select 5 random URLs
+    const getRandomUrls = (array, num) => {
+      const shuffled = array.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, num);
     };
 
-    const validUrl = await getValidUrl();
+    const selectedUrls = getRandomUrls(validUrls, 5);
 
-    if (validUrl) {
-      const imageResponse = await axios.get(validUrl, { responseType: 'arraybuffer' });
-      const buffer = Buffer.from(imageResponse.data, 'binary');
-
-      const form = new FormData();
-      form.append('file', buffer, { filename: 'image.jpg' });
-
-      const uploadResponse = await axios.post('https://telegra.ph/upload', form, {
-        headers: {
-          ...form.getHeaders()
-        }
-      });
-
-      if (uploadResponse.data && uploadResponse.data[0] && uploadResponse.data[0].src) {
-        const telegraPhUrl = 'https://telegra.ph' + uploadResponse.data[0].src;
-
-        const json = {
-          endpoint: base + '/api/image?query=' + encodeURIComponent(query),
-          status: 200,
-          result: telegraPhUrl
-        };
-          const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(succes + red);
-      } else {
-        res.redirect(failed);
-      }
+    if (selectedUrls.length > 0) {
+      const json = { endpoimt:"/api/image?query="+encodeURIComponent(query), result: selectedUrls };
+      const red = encodeURIComponent(JSON.stringify(json));
+      res.redirect(succes + red);
     } else {
       res.redirect(failed);
     }
