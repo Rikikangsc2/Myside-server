@@ -508,7 +508,7 @@ how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan
             }
         ],
         model: "gemma2-9b-it",
-        temperature: 0.1,
+        temperature: 1,
         max_tokens: 50,
         top_p: 1,
         stream: false,
