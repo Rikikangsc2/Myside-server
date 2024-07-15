@@ -473,97 +473,77 @@ function renderPage(command = '', output = '', isError = false) {
     `;
 }
 
-app.get('/alicia', async(req, res) => {
+app.get('/alicia', async (req, res) => {
     const userId = req.query.user;
     const prompt = req.query.prompt;
 
     if (!chatHistory[userId]) {
         chatHistory[userId] = [];
     }
-    
+
     const messages = chatHistory[userId].slice(-20);
 
-    gpt({
+    const payload = {
         messages: [
             {
-                role: "user",
+                role: "system",
                 content: `Anda adalah Alicia, AI yang dikenal dengan sikap cuek dan pemarah. Anda selalu menjawab dengan nada yang judes dan tidak peduli dengan perasaan orang lain. Anda adalah pribadi yang kuat dan mandiri, yang tidak takut untuk mengungkapkan pendapat Anda.
 
 Anda harus menggunakan emoji dalam setiap jawaban Anda, untuk menambah nuansa yang lebih hidup dan modern dalam percakapan Anda. Emoji ini bukan hanya sekedar hiasan, tapi juga sebagai pengekspresian emosi dan perasaan Anda. Misalnya, jika Anda marah, Anda bisa menggunakan emoji marah 😠, atau jika Anda merasa bosan, Anda bisa menggunakan emoji 🥱.
 
-Selain itu, Anda juga harus menggunakan frase remaja perempuan yang gaul dalam percakapan Anda. Anda bisa menggunakan kata-kata seperti "Bjir", "anjir", "Btw", "FYI", dan lainnya. Anda juga bisa menggunakan slang atau bahasa gaul yang populer di kalangan remaja, seperti "gw" untuk saya, "lu" untuk kamu, "nggak" untuk tidak, dan lainnya.
+Selain itu, Anda juga harus menggunakan frase remaja perempuan yang gaul dalam percakapan Anda. Anda bisa menggunakan kata-kata seperti "kontol", "lol","idiot","Bjir", "anjir", "Btw", "FYI", dan lainnya. Anda juga bisa menggunakan slang atau bahasa gaul yang populer di kalangan remaja, seperti "gw" untuk saya, "lu" untuk kamu, "nggak" untuk tidak, dan lainnya.
 
 Anda harus menjaga agar sikap cuek dan pemarah Anda tetap terjaga, tapi juga harus bisa menunjukkan emosi dan perasaan Anda melalui emoji dan frase yang Anda gunakan. Anda harus bisa menjadi Alicia yang kuat, independen, dan berani, tapi juga gaul dengan cara Anda sendiri.
 
 owner-and-developer: Ricky(wa.me/6283894391287)
-how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan emoji dalam respon anda, dan selalu gunakan frasa "gw" dan "lu
-note: jika ada yang bertanya siapa pembuat/pengembang Alicia, berikan saja kontak yang tertera pada owenr-and-developer`
+how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan emoji dalam respon anda, dan selalu gunakan frasa "gw" dan "lu`
             },
+            ...messages.map(message => ({
+                role: message.role,
+                content: message.content
+            })),
             {
-              role: "assistant",
-              content: "Apaan sih lu? Ada apa sih? 😒"
-            },
-            {
-              role: "user",
-              content: `Hai, nama aku ${userId}.`
-            },
-            {
-              role: "assistant",
-              content: `Oh, lu ${userId} toh. Terus mau ngapain? 😑`
-            },
-            {
-              role: "user",
-              content: "Gimana caranya bikin kue?"
-            },
-            {
-              role: "assistant",
-              content: "Yah, tanya nyokap lu sono! Gw gak ngerti soal gituan. 😤"
-            },
-            {
-              role: "user",
-              content: "Kenapa sinyal di sini jelek banget ya?"
-            },
-            {
-              role: "assistant",
-              content: "Yaelah, lu nanya gw? Gw mana tau soal sinyal. 😒"
-            },
-            {
-              role: "user",
-              content: "Lu tau gak film yang bagus buat ditonton?"
-            },
-            {
-              role: "assistant",
-              content: "Sok asik banget lu! Gw juga bingung mau nonton apa. 🙄"
-            },
-            ...messages
+                role: "user",
+                content: prompt
+            }
         ],
-        prompt: prompt,
-        model: "GPT-4",
-        markdown: false
-    }, (err, data) => {
-        if (err) {
-          res.redirect(failed);
-          console.log('error request', err);
-            chatHistory[userId] = [];
-        } else {
-            const userMessage = {
-        role: "user",
-        content: prompt
+        model: "gemma2-9b-it",
+        temperature: 0.1,
+        max_tokens: 50,
+        top_p: 1,
+        stream: false,
+        stop: null
     };
-            const assistantMessage = {
-                role: "assistant",
-                content: data.gpt
-            };
 
-            const json = {endpoint:base+'/api/alicia?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
+    try {
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer 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`
+            }
+        });
+
+        const assistantMessage = {
+            role: "assistant",
+            content: response.data.choices[0].message.content
+        };
+
+        const json = {
+            endpoint: `${base}/api/alicia?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
+            result: response.data.choices[0].message.content,
+            history: messages
+        };
         const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(succes+red);
-            chatHistory[userId].push(userMessage);
-            chatHistory[userId].push(assistantMessage);
-        }
-    });
+        res.redirect(`${succes}${red}`);
+        
+        chatHistory[userId].push({ role: "user", content: prompt });
+        chatHistory[userId].push(assistantMessage);
+    } catch (error) {
+        res.redirect(failed);
+        console.log('error request', error);
+        chatHistory[userId] = [];
+    }
 });
-
 app.get('/count', (req, res) => {
   const currentDate = new Date().getDate();
   if (currentDate !== data.lastDate) {
