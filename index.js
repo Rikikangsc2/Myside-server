@@ -320,53 +320,67 @@ app.get('/upscale', async (req, res) => {
   }
 });
 
-app.get('/sgpt', async(req, res) => {
-    const userId = req.query.user + 'gpt';
+app.get('/sgpt', async (req, res) => {
+    const userId = req.query.user;
     const prompt = req.query.prompt;
 
     if (!chatHistory[userId]) {
         chatHistory[userId] = [];
     }
 
-    const messages = chatHistory[userId].slice(-20);
+    const messages = chatHistory[userId]
 
-    gpt({
+    const payload = {
         messages: [
             {
-                role: "user",
-                content: `Hello, I am NueAI, your virtual assistant. You can visit my website at s.id/nueapi. I am not a GPT or OpenAI model; I am a language model called NEKOKIMOCHI-ARA-ARAV1, specifically developed for s.id/nueapi. I have been created and bought by s.id/nueapi to provide detailed answers to your questions. How can I assist you today?`
+                role: "system",
+                content: `Anda adalah NueAI, NueAI adalah AI yang di buat NueAPI, NueAPI adalah platform yang menawarkan restFullApi gratis 100% di website s.id/nueapi. Anda adalah asisten virtual yang dapat menjawab pertanyaan, menyelesaikan masalah, dan membantu apa saja yang berbasis teks.`
             },
+            ...messages.map(message => ({
+                role: message.role,
+                content: message.content
+            })),
             {
-              role: "assistant",
-              content: "Hello, I am NueAI your virtual assistant, I have a website namely s.id/nueapi, I am not GPT or openai I am a language model called NEKOKIMOCHI-ARA-ARAV1 I am not a GPT or Openai model I only belong to s.id/nueapi I have been bought by s.id/nueapi I am ready to give detailed answers to the questions you ask now!"
-            },
-            ...messages
+                role: "user",
+                content: prompt
+            }
         ],
-        prompt: prompt,
-        model: "GPT-4",
-        markdown: false
-    }, (err, data) => {
-        if (err) {
-          res.redirect(failed);
-          console.log('error request', err);
-            chatHistory[userId] = [];
-        } else {
-            const userMessage = {
-        role: "user",
-        content: prompt
+        "model": "llama3-70b-8192",
+         "temperature": 1,
+         "max_tokens": 1024,
+         "top_p": 1,
+         "stream": false,
+         "stop": null
     };
-            const assistantMessage = {
-                role: "assistant",
-                content: data.gpt
-            };
 
-            const json = {endpoint:base+'/api/sgpt?user=UNTUK_SESION_CHAT&text='+encodeURIComponent(prompt),result: data.gpt,history:messages};
+    try {
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer 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`
+            }
+        });
+
+        const assistantMessage = {
+            role: "assistant",
+            content: response.data.choices[0].message.content
+        };
+
+        const json = {
+            endpoint: `${base}/api/sgpt?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
+            result: response.data.choices[0].message.content,
+            history: messages
+        };
         const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(succes+red);
-            chatHistory[userId].push(userMessage);
-            chatHistory[userId].push(assistantMessage);
-        }
-    });
+        res.redirect(`${succes}${red}`);
+        
+        chatHistory[userId].push({ role: "user", content: prompt });
+        chatHistory[userId].push(assistantMessage);
+    } catch (error) {
+        res.redirect(failed);
+        console.log('error request', error);
+        chatHistory[userId] = [];
+    }
 });
 
 app.get('/admin', (req, res) => {
@@ -481,7 +495,7 @@ app.get('/alicia', async (req, res) => {
         chatHistory[userId] = [];
     }
 
-    const messages = chatHistory[userId].slice(-20);
+    const messages = chatHistory[userId];
 
     const payload = {
         messages: [
