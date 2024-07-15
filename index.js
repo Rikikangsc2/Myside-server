@@ -507,12 +507,12 @@ how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan
                 content: prompt
             }
         ],
-        model: "gemma2-9b-it",
-        temperature: 1,
-        max_tokens: 50,
-        top_p: 1,
-        stream: false,
-        stop: null
+        "model": "llama3-70b-8192",
+         "temperature": 1,
+         "max_tokens": 1024,
+         "top_p": 1,
+         "stream": false,
+         "stop": null
     };
 
     try {
