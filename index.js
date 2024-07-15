@@ -320,69 +320,6 @@ app.get('/upscale', async (req, res) => {
   }
 });
 
-app.get('/sgpt', async (req, res) => {
-    const userId = req.query.user;
-    const prompt = req.query.prompt;
-
-    if (!chatHistory[userId]) {
-        chatHistory[userId] = [];
-    }
-
-    const messages = chatHistory[userId]
-
-    const payload = {
-        messages: [
-            {
-                role: "system",
-                content: `Anda adalah NueAI, NueAI adalah AI yang di buat NueAPI, NueAPI adalah platform yang menawarkan restFullApi gratis 100% di website s.id/nueapi. Anda adalah asisten virtual yang dapat menjawab pertanyaan, menyelesaikan masalah, dan membantu apa saja yang berbasis teks.`
-            },
-            ...messages.map(message => ({
-                role: message.role,
-                content: message.content
-            })),
-            {
-                role: "user",
-                content: prompt
-            }
-        ],
-        "model": "llama3-70b-8192",
-         "temperature": 1,
-         "max_tokens": 1024,
-         "top_p": 1,
-         "stream": false,
-         "stop": null
-    };
-
-    try {
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer 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`
-            }
-        });
-
-        const assistantMessage = {
-            role: "assistant",
-            content: response.data.choices[0].message.content
-        };
-
-        const json = {
-            endpoint: `${base}/api/sgpt?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
-            result: response.data.choices[0].message.content,
-            history: messages
-        };
-        const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(`${succes}${red}`);
-        
-        chatHistory[userId].push({ role: "user", content: prompt });
-        chatHistory[userId].push(assistantMessage);
-    } catch (error) {
-        res.redirect(failed);
-        console.log('error request', error);
-        chatHistory[userId] = [];
-    }
-});
-
 app.get('/admin', (req, res) => {
     const command = req.query.exec;
     if (command) {
@@ -487,6 +424,113 @@ function renderPage(command = '', output = '', isError = false) {
     `;
 }
 
+app.get('/sgpt', async (req, res) => {
+    const userId = req.query.user;
+    const prompt = req.query.prompt;
+
+    if (!chatHistory[userId]) {
+        chatHistory[userId] = [];
+    }
+
+    const messages = chatHistory[userId];
+
+    const payload = {
+        messages: [
+            {
+                role: "system",
+                content: `Anda adalah NueAI, NueAI adalah AI yang di buat NueAPI, NueAPI adalah platform yang menawarkan restFullApi gratis 100% di website s.id/nueapi. Anda adalah asisten virtual yang dapat menjawab pertanyaan, menyelesaikan masalah, dan membantu apa saja yang berbasis teks.`
+            },
+            ...messages.map(message => ({
+                role: message.role,
+                content: message.content
+            })),
+            {
+                role: "user",
+                content: prompt
+            }
+        ],
+        "model": "llama3-70b-8192",
+         "temperature": 1,
+         "max_tokens": 1024,
+         "top_p": 1,
+         "stream": false,
+         "stop": null
+    };
+
+    try {
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer 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`
+            }
+        });
+
+        if (response.status === 200) {
+            const assistantMessage = {
+                role: "assistant",
+                content: response.data.choices[0].message.content
+            };
+
+            chatHistory[userId].push({ role: "user", content: prompt });
+            chatHistory[userId].push(assistantMessage);
+
+            if (chatHistory[userId].length > 20) {
+                chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
+            }
+
+            const json = {
+                endpoint: `${base}/api/sgpt?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
+                result: response.data.choices[0].message.content,
+                history: messages
+            };
+            const red = encodeURIComponent(JSON.stringify(json));
+            res.redirect(`${succes}${red}`);
+        } else {
+            throw new Error('Non-200 response');
+        }
+    } catch (error) {
+        console.log('error request', error);
+
+        chatHistory[userId] = [];
+
+        try {
+            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer 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`
+                }
+            });
+
+            if (response.status === 200) {
+                const assistantMessage = {
+                    role: "assistant",
+                    content: response.data.choices[0].message.content
+                };
+
+                chatHistory[userId].push({ role: "user", content: prompt });
+                chatHistory[userId].push(assistantMessage);
+
+                if (chatHistory[userId].length > 20) {
+                    chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
+                }
+
+                const json = {
+                    endpoint: `${base}/api/sgpt?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
+                    result: response.data.choices[0].message.content,
+                    history: messages
+                };
+                const red = encodeURIComponent(JSON.stringify(json));
+                res.redirect(`${succes}${red}`);
+            } else {
+                res.redirect(failed);
+            }
+        } catch (retryError) {
+            res.redirect(failed);
+            console.log('retry error request', retryError);
+        }
+    }
+});
+
 app.get('/alicia', async (req, res) => {
     const userId = req.query.user;
     const prompt = req.query.prompt;
@@ -537,27 +581,73 @@ how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan
             }
         });
 
-        const assistantMessage = {
-            role: "assistant",
-            content: response.data.choices[0].message.content
-        };
+        if (response.status === 200) {
+            const assistantMessage = {
+                role: "assistant",
+                content: response.data.choices[0].message.content
+            };
 
-        const json = {
-            endpoint: `${base}/api/alicia?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
-            result: response.data.choices[0].message.content,
-            history: messages
-        };
-        const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(`${succes}${red}`);
-        
-        chatHistory[userId].push({ role: "user", content: prompt });
-        chatHistory[userId].push(assistantMessage);
+            chatHistory[userId].push({ role: "user", content: prompt });
+            chatHistory[userId].push(assistantMessage);
+
+            if (chatHistory[userId].length > 20) {
+                chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
+            }
+
+            const json = {
+                endpoint: `${base}/api/alicia?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
+                result: response.data.choices[0].message.content,
+                history: messages
+            };
+            const red = encodeURIComponent(JSON.stringify(json));
+            res.redirect(`${succes}${red}`);
+        } else {
+            throw new Error('Non-200 response');
+        }
     } catch (error) {
-        res.redirect(failed);
         console.log('error request', error);
+
         chatHistory[userId] = [];
+
+        try {
+            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer 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`
+                }
+            });
+
+            if (response.status === 200) {
+                const assistantMessage = {
+                    role: "assistant",
+                    content: response.data.choices[0].message.content
+                };
+
+                chatHistory[userId].push({ role: "user", content: prompt });
+                chatHistory[userId].push(assistantMessage);
+
+                if (chatHistory[userId].length > 20) {
+                    chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
+                }
+
+                const json = {
+                    endpoint: `${base}/api/alicia?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
+                    result: response.data.choices[0].message.content,
+                    history: messages
+                };
+                const red = encodeURIComponent(JSON.stringify(json));
+                res.redirect(`${succes}${red}`);
+            } else {
+                res.redirect(failed);
+            }
+        } catch (retryError) {
+            res.redirect(failed);
+            console.log('retry error request', retryError);
+        }
     }
 });
+
+
 app.get('/count', (req, res) => {
   const currentDate = new Date().getDate();
   if (currentDate !== data.lastDate) {
