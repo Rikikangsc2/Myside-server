@@ -17,6 +17,8 @@ const { RsnChat } = require("rsnchat");
 
 const rsnchat = new RsnChat("rsnai_SQPKHQEtlKlh8s9cjovGIiOp");
 
+const userId = 'nueapi'; 
+const ikyDBBaseUrl = 'https://copper-ambiguous-velvet.glitch.me';
 
 const listapikey = ["8f62a0ea-cd83-4003-b809-6803bf9dd619","09c4a774-bf77-474a-b09b-45d63005160b","7e8ee357-c24c-450e-993b-ecc7458a6607","91eb053f-ae98-4baa-a2b0-1585f6199979","17a57da9-df4a-48c2-8d49-5bfc390174d2","6dc6600b-893a-4550-a980-a12c5f015288","4a465c34-f761-4de3-a9f8-b791ac7c5f43","cccdaf86-5e20-4b02-90cf-0e2dfa2ae19f"]
 
@@ -24,6 +26,33 @@ const apikey = () => {
   const randomIndex = Math.floor(Math.random() * listapikey.length);
   return listapikey[randomIndex];
 };
+
+async function readData() {
+  try {
+    const response = await axios.get(`${ikyDBBaseUrl}/read/${userId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return {
+        today: 0,
+        yesterday: 0,
+        total: 0,
+        lastDate: new Date().getDate()
+      };
+    }
+    throw error;
+  }
+}
+
+async function writeData(data) {
+  try {
+    await axios.get(`${ikyDBBaseUrl}/write/${userId}`, {
+      params: { json: JSON.stringify(data) }
+    });
+  } catch (error) {
+    throw error;
+  }
+}
 
 //*
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -33,6 +62,36 @@ app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 app.get('/sdlist',async(req,res)=>{await sdList(res)})
 app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 //Router
+app.get('/count', async (req, res) => {
+  try {
+    let data = await readData();
+    const currentDate = new Date().getDate();
+    
+    if (currentDate !== data.lastDate) {
+      data.yesterday = data.today;
+      data.today = 0;
+      data.lastDate = currentDate;
+    }
+    
+    data.today += 1;
+    data.total += 1;
+    
+    await writeData(data);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/read', async (req, res) => {
+  try {
+    const data = await readData();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.get('/bard', async (req, res)=>{
     if (!req.query.text) return res.status(400).send("Masukkan parameter text");
     try {
@@ -409,48 +468,6 @@ function renderPage(command = '', output = '', isError = false) {
         </html>
     `;
 }
-
-app.get('/count', async (req, res) => {
-  let data;
-
-  try {
-    const response = await axios.get(`https://copper-ambiguous-velvet.glitch.me/read/nueapi`);
-    data = response.data;
-  } catch (error) {
-    data = { today: 0, yesterday: 0, total: 0, lastDate: null};
-  }
-
-  const currentDate = new Date().getDate();
-  if (currentDate !== data.lastDate) {
-    data.yesterday = data.today;
-    data.today = 0;
-    data.lastDate = currentDate;
-  }
-  data.today += 1;
-  data.total += 1;
-
-  try {
-    await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/nueapi`, data, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-  } catch (error) {
-    console.error('Error writing data:', error);
-  }
-
-  res.json(data);
-});
-
-app.get('/read', async (req, res) => {
-  try {
-    const response = await axios.get(`https://copper-ambiguous-velvet.glitch.me/read/nueapi`);
-    res.json(response.data);
-  } catch (error) {
-    console.error('Error reading data:', error);
-    res.status(500).json({ error: 'Error reading data' });
-  }
-});
 
 app.get('/image', async (req, res) => {
   const query = req.query.query;
