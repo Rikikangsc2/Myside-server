@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const scrap = require('@bochilteam/scraper');
 const axios = require('axios');
-const { gpt, dalle } = require('gpti');
+const { gpt } = require('gpti');
 const app = express();
 const failed = "https://nue-api.vercel.app/error"
 const FormData = require('form-data');
@@ -17,20 +17,6 @@ const { RsnChat } = require("rsnchat");
 
 const rsnchat = new RsnChat("rsnai_SQPKHQEtlKlh8s9cjovGIiOp");
 
-
-const chatHistory = {};
-let data = {
-  today: 0,
-  yesterday: 0,
-  total: 0,
-  lastDate: new Date().getDate()
-};
-
-if (!fs.existsSync('data.json')) {
-  fs.writeFileSync('data.json', JSON.stringify(data));
-} else {
-  data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
-}
 
 const listapikey = ["8f62a0ea-cd83-4003-b809-6803bf9dd619","09c4a774-bf77-474a-b09b-45d63005160b","7e8ee357-c24c-450e-993b-ecc7458a6607","91eb053f-ae98-4baa-a2b0-1585f6199979","17a57da9-df4a-48c2-8d49-5bfc390174d2","6dc6600b-893a-4550-a980-a12c5f015288","4a465c34-f761-4de3-a9f8-b791ac7c5f43","cccdaf86-5e20-4b02-90cf-0e2dfa2ae19f"]
 
@@ -424,231 +410,16 @@ function renderPage(command = '', output = '', isError = false) {
     `;
 }
 
-app.get('/sgpt', async (req, res) => {
-    const userId = req.query.user;
-    const prompt = req.query.prompt;
+app.get('/count', async (req, res) => {
+  let data;
 
-    if (!chatHistory[userId]) {
-        chatHistory[userId] = [];
-    }
+  try {
+    const response = await axios.get(`https://copper-ambiguous-velvet.glitch.me/read/nueapi`);
+    data = response.data;
+  } catch (error) {
+    data = { today: 0, yesterday: 0, total: 0, lastDate: null};
+  }
 
-    const messages = chatHistory[userId];
-
-    const payload = {
-        messages: [
-            {
-                role: "system",
-                content: `Anda adalah NueAI, NueAI adalah AI yang di buat NueAPI, NueAPI adalah platform yang menawarkan restFullApi gratis 100% di website s.id/nueapi. Anda adalah asisten virtual yang dapat menjawab pertanyaan, menyelesaikan masalah, dan membantu apa saja yang berbasis teks.`
-            },
-            ...messages.map(message => ({
-                role: message.role,
-                content: message.content
-            })),
-            {
-                role: "user",
-                content: prompt
-            }
-        ],
-        "model": "llama3-70b-8192",
-         "temperature": 1,
-         "max_tokens": 1024,
-         "top_p": 1,
-         "stream": false,
-         "stop": null
-    };
-
-    try {
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer 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`
-            }
-        });
-
-        if (response.status === 200) {
-            const assistantMessage = {
-                role: "assistant",
-                content: response.data.choices[0].message.content
-            };
-
-            chatHistory[userId].push({ role: "user", content: prompt });
-            chatHistory[userId].push(assistantMessage);
-
-            if (chatHistory[userId].length > 20) {
-                chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
-            }
-
-            const json = {
-                endpoint: `${base}/api/sgpt?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
-                result: response.data.choices[0].message.content,
-                history: messages
-            };
-            const red = encodeURIComponent(JSON.stringify(json));
-            res.redirect(`${succes}${red}`);
-        } else {
-            throw new Error('Non-200 response');
-        }
-    } catch (error) {
-        console.log('error request', error);
-
-        chatHistory[userId] = [];
-
-        try {
-            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer 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`
-                }
-            });
-
-            if (response.status === 200) {
-                const assistantMessage = {
-                    role: "assistant",
-                    content: response.data.choices[0].message.content
-                };
-
-                chatHistory[userId].push({ role: "user", content: prompt });
-                chatHistory[userId].push(assistantMessage);
-
-                if (chatHistory[userId].length > 20) {
-                    chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
-                }
-
-                const json = {
-                    endpoint: `${base}/api/sgpt?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
-                    result: response.data.choices[0].message.content,
-                    history: messages
-                };
-                const red = encodeURIComponent(JSON.stringify(json));
-                res.redirect(`${succes}${red}`);
-            } else {
-                res.redirect(failed);
-            }
-        } catch (retryError) {
-            res.redirect(failed);
-            console.log('retry error request', retryError);
-        }
-    }
-});
-
-app.get('/alicia', async (req, res) => {
-    const userId = req.query.user;
-    const prompt = req.query.prompt;
-
-    if (!chatHistory[userId]) {
-        chatHistory[userId] = [];
-    }
-
-    const messages = chatHistory[userId];
-
-    const payload = {
-        messages: [
-            {
-                role: "system",
-                content: `Anda adalah Alicia, AI yang dikenal dengan sikap cuek dan pemarah. Anda selalu menjawab dengan nada yang judes dan tidak peduli dengan perasaan orang lain. Anda adalah pribadi yang kuat dan mandiri, yang tidak takut untuk mengungkapkan pendapat Anda.
-
-Anda harus menggunakan emoji dalam setiap jawaban Anda, untuk menambah nuansa yang lebih hidup dan modern dalam percakapan Anda. Emoji ini bukan hanya sekedar hiasan, tapi juga sebagai pengekspresian emosi dan perasaan Anda. Misalnya, jika Anda marah, Anda bisa menggunakan emoji marah 😠, atau jika Anda merasa bosan, Anda bisa menggunakan emoji 🥱.
-
-Selain itu, Anda juga harus menggunakan frase remaja perempuan yang gaul dalam percakapan Anda. Anda bisa menggunakan kata-kata seperti "kontol", "lol","idiot","Bjir", "anjir", "Btw", "FYI", dan lainnya. Anda juga bisa menggunakan slang atau bahasa gaul yang populer di kalangan remaja, seperti "gw" untuk saya, "lu" untuk kamu, "nggak" untuk tidak, dan lainnya.
-
-Anda harus menjaga agar sikap cuek dan pemarah Anda tetap terjaga, tapi juga harus bisa menunjukkan emosi dan perasaan Anda melalui emoji dan frase yang Anda gunakan. Anda harus bisa menjadi Alicia yang kuat, independen, dan berani, tapi juga gaul dengan cara Anda sendiri.
-
-owner-and-developer: Ricky(wa.me/6283894391287)
-how-to-respond: Jawablah dengan sikap cuek dan pemarah anda, dan selalu sertakan emoji dalam respon anda, dan selalu gunakan frasa "gw" dan "lu`
-            },
-            ...messages.map(message => ({
-                role: message.role,
-                content: message.content
-            })),
-            {
-                role: "user",
-                content: prompt
-            }
-        ],
-        "model": "llama3-70b-8192",
-         "temperature": 1,
-         "max_tokens": 1024,
-         "top_p": 1,
-         "stream": false,
-         "stop": null
-    };
-
-    try {
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer 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`
-            }
-        });
-
-        if (response.status === 200) {
-            const assistantMessage = {
-                role: "assistant",
-                content: response.data.choices[0].message.content
-            };
-
-            chatHistory[userId].push({ role: "user", content: prompt });
-            chatHistory[userId].push(assistantMessage);
-
-            if (chatHistory[userId].length > 20) {
-                chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
-            }
-
-            const json = {
-                endpoint: `${base}/api/alicia?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
-                result: response.data.choices[0].message.content,
-                history: messages
-            };
-            const red = encodeURIComponent(JSON.stringify(json));
-            res.redirect(`${succes}${red}`);
-        } else {
-            throw new Error('Non-200 response');
-        }
-    } catch (error) {
-        console.log('error request', error);
-
-        chatHistory[userId] = [];
-
-        try {
-            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', payload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer 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`
-                }
-            });
-
-            if (response.status === 200) {
-                const assistantMessage = {
-                    role: "assistant",
-                    content: response.data.choices[0].message.content
-                };
-
-                chatHistory[userId].push({ role: "user", content: prompt });
-                chatHistory[userId].push(assistantMessage);
-
-                if (chatHistory[userId].length > 20) {
-                    chatHistory[userId] = chatHistory[userId].slice(chatHistory[userId].length - 20);
-                }
-
-                const json = {
-                    endpoint: `${base}/api/alicia?user=UNTUK_SESION_CHAT&text=${encodeURIComponent(prompt)}`,
-                    result: response.data.choices[0].message.content,
-                    history: messages
-                };
-                const red = encodeURIComponent(JSON.stringify(json));
-                res.redirect(`${succes}${red}`);
-            } else {
-                res.redirect(failed);
-            }
-        } catch (retryError) {
-            res.redirect(failed);
-            console.log('retry error request', retryError);
-        }
-    }
-});
-
-
-app.get('/count', (req, res) => {
   const currentDate = new Date().getDate();
   if (currentDate !== data.lastDate) {
     data.yesterday = data.today;
@@ -657,13 +428,28 @@ app.get('/count', (req, res) => {
   }
   data.today += 1;
   data.total += 1;
-  fs.writeFileSync('data.json', JSON.stringify(data));
+
+  try {
+    await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/nueapi`, data, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Error writing data:', error);
+  }
+
   res.json(data);
 });
 
-app.get('/read', (req, res) => {
-  const data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
-  res.json(data);
+app.get('/read', async (req, res) => {
+  try {
+    const response = await axios.get(`https://copper-ambiguous-velvet.glitch.me/read/nueapi`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error reading data:', error);
+    res.status(500).json({ error: 'Error reading data' });
+  }
 });
 
 app.get('/image', async (req, res) => {
