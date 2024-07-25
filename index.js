@@ -143,7 +143,7 @@ app.get('/sgemini', async (req,res)=>{
     };
 
     gemini(req.query.systemPrompt, req.query.text, req.query.user).then(result => {
-        const json = {endpoint: base+'/api/sgemini?systemPrompt='+req.query.systemPrompt+'&text='+req.query.text+'&user='+req.query.user, result: result};
+        const json = {endpoint: base+'/api/sgemini?systemPrompt='+req.query.systemPrompt+'&text='+req.query.text+'&user='+req.query.user, result:result.result, history:result.history};
         const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes+red);
     }).catch(error =>{
