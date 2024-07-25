@@ -62,23 +62,22 @@ app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 app.get('/sdlist',async(req,res)=>{await sdList(res)})
 app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 //Router
-app.get('/sgemini', async (req,res)=>{
+app.get('/sgemini', async (req, res) => {
     const gemini = async (systemMessage, prompt, userId) => {
         let chatHistory = [];
-        
-        const sendRequest = async (sliceLength) => {
+
+        const sendRequest = async (sliceLength, currentPrompt) => {
             try {
                 const messages = chatHistory.slice(-sliceLength);
                 const payload = {
                     messages: [
                         { role: "system", content: systemMessage },
-                        ...messages.map(msg => ({ role: msg.role, content: msg.content })),
-                        { role: "user", content: prompt }
+                        ...messages.map(msg => ({ role: msg.role, content: msg.content }))
                     ]
                 };
 
                 const formattedMessages = payload.messages.map(msg => `${msg.role === "system" ? "System" : "User"}: ${msg.content}`).join("\n");
-                const apiUrl = `https://nue-api.vercel.app/api/gemini?prompt=[${formattedMessages}]\nPermintaan-baru: ${prompt}\n\nnote: Jawablah permintaan baru secara langsung`;
+                const apiUrl = `https://nue-api.vercel.app/api/gemini?prompt=[${formattedMessages}]\nPermintaan-baru: ${currentPrompt}\n\nnote: Jawablah permintaan baru secara langsung`;
 
                 const response = await axios.get(apiUrl);
 
@@ -87,9 +86,8 @@ app.get('/sgemini', async (req,res)=>{
                 }
 
                 const assistantMessage = { role: "assistant", content: response.data.result.trim() };
-                chatHistory.push({ role: "user", content: prompt }, assistantMessage);
-                assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ');
-                assistantMessage.content = assistantMessage.content.replace(/\*\*/g, '*');
+                chatHistory.push({ role: "user", content: currentPrompt }, assistantMessage);
+                assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ').replace(/\*\*/g, '*');
 
                 await axios.get(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {
                     params: {
@@ -104,24 +102,28 @@ app.get('/sgemini', async (req,res)=>{
         };
 
         try {
-            let readResponse = { data: {} };
-            try {
-                readResponse = await axios.get(`https://copper-ambiguous-velvet.glitch.me/read/${userId}`);
-            } catch (error) {
-                await axios.get(`https://copper-ambiguous-velvet.glitch.me/write/${userId}?json={}`);
-                readResponse.data = [];
-            }
+            let readResponse = await axios.get(`https://copper-ambiguous-velvet.glitch.me/read/${userId}`).catch(() => ({ data: {} }));
             chatHistory = readResponse.data[userId] || [];
 
-            let success;
-            for (let sliceLength = 100; sliceLength >= 0; sliceLength -= 5) {
-                success = await sendRequest(sliceLength);
-                if (success) break;
+            const attemptRequest = async (currentPrompt) => {
+                for (let sliceLength = 100; sliceLength >= 0; sliceLength -= 5) {
+                    const success = await sendRequest(sliceLength, currentPrompt);
+                    if (success) return success;
+                }
+                return false;
+            };
+
+            let success = await attemptRequest(prompt);
+
+            if (!success && chatHistory.length > 0) {
+                const lastUserMessage = chatHistory.slice().reverse().find(msg => msg.role === "user").content;
+                success = await attemptRequest(lastUserMessage);
             }
 
             if (!success) {
+                const lastUserMessage = chatHistory.slice().reverse().find(msg => msg.role === "user").content;
                 chatHistory = [];
-                success = await sendRequest(0);
+                success = await attemptRequest(lastUserMessage);
             }
             if (!success) throw new Error('All retries failed');
 
@@ -141,12 +143,12 @@ app.get('/sgemini', async (req,res)=>{
         const json = {endpoint: base+'/api/sgemini?systemPrompt='+req.query.systemPrompt+'&text='+req.query.text+'&user='+req.query.user, result:result.result, history:result.history};
         const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes+red);
-    }).catch(error =>{
+    }).catch(error => {
         console.error(error);
         res.redirect(failed);
-    })
-
+    });
 });
+
 app.get('/count', async (req, res) => {
   try {
     let data = await readData();
