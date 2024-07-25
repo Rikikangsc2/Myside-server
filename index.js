@@ -89,7 +89,7 @@ app.get('/sgemini', async (req, res) => {
 
                 await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {json:chatHistory});
 
-                return { result: assistantMessage.content, history: messages };
+                return { result: assistantMessage.content, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` };
             } catch (error) {
                 return false;
             }
