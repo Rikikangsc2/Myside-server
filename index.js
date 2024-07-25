@@ -44,11 +44,9 @@ async function readData() {
   }
 }
 
-async function writeData(data) {
+async function writeData(userId, data) {
   try {
-    await axios.get(`${ikyDBBaseUrl}/write/${userId}`, {
-      params: { json: JSON.stringify(data) }
-    });
+    await axios.post(`${ikyDBBaseUrl}/write/${userId}`, {json:data});
   } catch (error) {
     throw error;
   }
@@ -89,11 +87,7 @@ app.get('/sgemini', async (req, res) => {
                 chatHistory.push({ role: "user", content: currentPrompt }, assistantMessage);
                 assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ').replace(/\*\*/g, '*');
 
-                await axios.get(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {
-                    params: {
-                        json: JSON.stringify({ [userId]: chatHistory })
-                    }
-                });
+                await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {json:chatHistory});
 
                 return { result: assistantMessage.content, history: messages };
             } catch (error) {
@@ -129,11 +123,7 @@ app.get('/sgemini', async (req, res) => {
 
             return success;
         } catch (error) {
-            await axios.get(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {
-                params: {
-                    json: JSON.stringify({ [userId]: [] })
-                }
-            });
+            await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {json:[]});
             console.error('Error request:', error);
             return { error: 'Internal Server Error' };
         }
@@ -163,9 +153,10 @@ app.get('/count', async (req, res) => {
     data.today += 1;
     data.total += 1;
     
-    await writeData(data);
+    await writeData(userId ,data);
     res.json(data);
   } catch (error) {
+      console.error('Error reading data:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
