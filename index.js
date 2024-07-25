@@ -75,19 +75,29 @@ app.get('/sgemini', async (req, res) => {
                 };
 
                 const formattedMessages = payload.messages.map(msg => `${msg.role === "system" ? "System" : "User"}: ${msg.content}`).join("\n");
-                const apiUrl = 'https://nue-api.vercel.app/api/gemini';
+                const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyB2tVdHido-pSjSNGrCrLeEgGGW3y28yWg';
 
-                const response = await axios.post(apiUrl, {prompt:`[${formattedMessages}]\nPermintaan-baru: ${currentPrompt}\n\nnote: Jawablah permintaan baru secara langsung`});
+                const response = await axios.post(apiUrl, {
+                    contents: [{
+                        parts: [{
+                            text: `[${formattedMessages}]\nPermintaan-baru: ${currentPrompt}\n\nnote: Jawablah permintaan baru secara langsung`
+                        }]
+                    }]
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                if (response.data.status !== 200) {
+                if (response.status !== 200) {
                     throw new Error('Request failed');
                 }
 
-                const assistantMessage = { role: "assistant", content: response.data.result.trim() };
+                const assistantMessage = { role: "assistant", content: response.data.contents[0].parts[0].text.trim() };
                 chatHistory.push({ role: "user", content: currentPrompt }, assistantMessage);
                 assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ').replace(/\*\*/g, '*');
 
-                await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {json:chatHistory});
+                await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, { json: chatHistory });
 
                 return { result: assistantMessage.content, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` };
             } catch (error) {
@@ -123,16 +133,16 @@ app.get('/sgemini', async (req, res) => {
 
             return success;
         } catch (error) {
-            await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, {json:[]});
+            await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, { json: [] });
             console.error('Error request:', error);
             return { error: 'Internal Server Error' };
         }
     };
 
     gemini(req.query.systemPrompt, req.query.text, req.query.user).then(result => {
-        const json = {endpoint: base+'/api/sgemini?systemPrompt='+req.query.systemPrompt+'&text='+req.query.text+'&user='+req.query.user, result:result.result, history:result.history};
+        const json = { endpoint: base + '/api/sgemini?systemPrompt=' + req.query.systemPrompt + '&text=' + req.query.text + '&user=' + req.query.user, result: result.result, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` };
         const red = encodeURIComponent(JSON.stringify(json));
-        res.redirect(succes+red);
+        res.redirect(succes + red);
     }).catch(error => {
         console.error(error);
         res.redirect(failed);
