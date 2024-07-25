@@ -62,6 +62,29 @@ app.use('/hasil.jpeg', express.static(path.join(__dirname, 'hasil.jpeg')));
 app.get('/sdlist',async(req,res)=>{await sdList(res)})
 app.get('/sdxllist',async(req,res)=>{await sdxlList(res)})
 //Router
+app.get('/tts', async (req, res) => {
+  const text = req.query.text;
+
+  if (!text) {
+    return res.status(400).send('Text parameter is required');
+  }
+
+  try {
+    const response = await axios.post('https://api.rnilaweera.lk/api/v1/user/tts', 
+      { text: text },
+      {
+        headers: {
+          'Authorization': 'Bearer rsnai_SQPKHQEtlKlh8s9cjovGIiOp'
+        }
+      }
+    );
+
+    res.send(response.data);
+  } catch (error) {
+    console.error('Error making request to Text-to-Speech API:', error);
+    res.status(500).send('An error occurred');
+  }
+});
 app.get('/count', async (req, res) => {
   try {
     let data = await readData();
