@@ -88,11 +88,6 @@ app.get('/sgemini', async (req,res)=>{
 
                 const assistantMessage = { role: "assistant", content: response.data.result.trim() };
                 chatHistory.push({ role: "user", content: prompt }, assistantMessage);
-
-                if (chatHistory.length > 20) {
-                    chatHistory = chatHistory.slice(-20);
-                }
-
                 assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ');
                 assistantMessage.content = assistantMessage.content.replace(/\*\*/g, '*');
 
