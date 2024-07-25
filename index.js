@@ -75,9 +75,9 @@ app.get('/sgemini', async (req, res) => {
                 };
 
                 const formattedMessages = payload.messages.map(msg => `${msg.role === "system" ? "System" : "User"}: ${msg.content}`).join("\n");
-                const apiUrl = `https://nue-api.vercel.app/api/gemini?prompt=[${formattedMessages}]\nPermintaan-baru: ${currentPrompt}\n\nnote: Jawablah permintaan baru secara langsung`;
+                const apiUrl = 'https://nue-api.vercel.app/api/gemini';
 
-                const response = await axios.get(apiUrl);
+                const response = await axios.post(apiUrl, {prompt:`[${formattedMessages}]\nPermintaan-baru: ${currentPrompt}\n\nnote: Jawablah permintaan baru secara langsung`});
 
                 if (response.data.status !== 200) {
                     throw new Error('Request failed');
