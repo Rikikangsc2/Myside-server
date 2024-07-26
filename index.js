@@ -106,7 +106,7 @@ const handleChat = async (req, res, systemMessage) => {
                 json: { [userId]: chatHistory }
             });
 
-            const json = { result: assistantMessage.content, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` }
+            const json = {endpoint:base+`/api/sgemini?systemPrompt=${systemMessage}&user=${user}&text=${text}`, result: assistantMessage.content, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` }
             const red = encodeURIComponent(JSON.stringify(json));
             res.redirect(succes + red);
             return true;
