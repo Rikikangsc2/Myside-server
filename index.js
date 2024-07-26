@@ -93,7 +93,12 @@ app.get('/sgemini', async (req, res) => {
                     throw new Error('Request failed');
                 }
 
-                const assistantMessage = { role: "assistant", content: response.data.contents[0].parts[0].text.trim() };
+                const assistantMessageText = response.data.candidates[0].content.parts[0].text.trim();
+                if (!assistantMessageText) {
+                    throw new Error('Invalid response structure');
+                }
+
+                const assistantMessage = { role: "assistant", content: assistantMessageText };
                 chatHistory.push({ role: "user", content: currentPrompt }, assistantMessage);
                 assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ').replace(/\*\*/g, '*');
 
@@ -140,7 +145,7 @@ app.get('/sgemini', async (req, res) => {
     };
 
     gemini(req.query.systemPrompt, req.query.text, req.query.user).then(result => {
-        const json = { endpoint: base + '/api/sgemini?systemPrompt=' + req.query.systemPrompt + '&text=' + req.query.text + '&user=' + req.query.user, result: result.result, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` };
+        const json = { endpoint: base + '/api/sgemini?systemPrompt=' + req.query.systemPrompt + '&text=' + req.query.text + '&user=' + req.query.user, result: result.result, history: result.history };
         const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes + red);
     }).catch(error => {
