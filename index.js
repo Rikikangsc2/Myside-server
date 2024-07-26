@@ -65,18 +65,18 @@ app.get('/sgemini', async (req, res) => {
         let chatHistory = [];
 
         const sendRequest = async (sliceLength, currentPrompt) => {
+            const messages = chatHistory.slice(-sliceLength);
+            const payload = {
+                messages: [
+                    { role: "system", content: systemMessage },
+                    ...messages.map(msg => ({ role: msg.role, content: msg.content }))
+                ]
+            };
+
+            const formattedMessages = payload.messages.map(msg => `${msg.role === "system" ? "System" : "User"}: ${msg.content}`).join("\n");
+            const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=YOUR_API_KEY';
+
             try {
-                const messages = chatHistory.slice(-sliceLength);
-                const payload = {
-                    messages: [
-                        { role: "system", content: systemMessage },
-                        ...messages.map(msg => ({ role: msg.role, content: msg.content }))
-                    ]
-                };
-
-                const formattedMessages = payload.messages.map(msg => `${msg.role === "system" ? "System" : "User"}: ${msg.content}`).join("\n");
-                const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyB2tVdHido-pSjSNGrCrLeEgGGW3y28yWg';
-
                 const response = await axios.post(apiUrl, {
                     contents: [{
                         parts: [{
@@ -100,12 +100,13 @@ app.get('/sgemini', async (req, res) => {
 
                 const assistantMessage = { role: "assistant", content: assistantMessageText };
                 chatHistory.push({ role: "user", content: currentPrompt }, assistantMessage);
-                assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ').replace(/\*\*/g, '*');
 
+                assistantMessage.content = assistantMessage.content.replace(/\n\n/g, '\n    ').replace(/\*\*/g, '*');
                 await axios.post(`https://copper-ambiguous-velvet.glitch.me/write/${userId}`, { json: chatHistory });
 
                 return { result: assistantMessage.content, history: `https://copper-ambiguous-velvet.glitch.me/read/${userId}` };
             } catch (error) {
+                console.error('Error during sendRequest:', error);
                 return false;
             }
         };
@@ -123,7 +124,6 @@ app.get('/sgemini', async (req, res) => {
             };
 
             let success = await attemptRequest(prompt);
-
             if (!success && chatHistory.length > 0) {
                 const lastUserMessage = chatHistory.slice().reverse().find(msg => msg.role === "user").content;
                 success = await attemptRequest(lastUserMessage);
@@ -134,6 +134,7 @@ app.get('/sgemini', async (req, res) => {
                 chatHistory = [];
                 success = await attemptRequest(lastUserMessage);
             }
+
             if (!success) throw new Error('All retries failed');
 
             return success;
