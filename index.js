@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const scrap = require('@bochilteam/scraper');
 const axios = require('axios');
-const { gpt } = require('gpti');
 const app = express();
 const failed = "https://nue-api.vercel.app/error"
 const FormData = require('form-data');
@@ -65,16 +64,16 @@ app.get('/count', async (req, res) => {
   try {
     let data = await readData();
     const currentDate = new Date().getDate();
-    
+
     if (currentDate !== data.lastDate) {
       data.yesterday = data.today;
       data.today = 0;
       data.lastDate = currentDate;
     }
-    
+
     data.today += 1;
     data.total += 1;
-    
+
     await writeData(userId ,data);
     res.json(data);
   } catch (error) {
@@ -137,7 +136,7 @@ app.get('/diff', async (req, res) => {
     style_preset: preset,
     prompt: prompt,
     model: model}
-      
+
     };
 
     const apiResponse = await axios(options);
@@ -202,7 +201,7 @@ app.get('/sdxl', async (req, res) => {
     steps: 20,
     model: model,
     prompt: prompt}
-      
+
     };
 
     const apiResponse = await axios(options);
@@ -526,7 +525,7 @@ app.get('/gemini', async (req, res) => {
       return res.status(400).json({ error: 'Query parameter "q" is required' });
     }
 
-    const response = await axios.post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyB2tVdHido-pSjSNGrCrLeEgGGW3y28yWg', {
+    const response = await axios.post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBuEVDIfZkgdt90fZb2XHT66TNRZWgwumU', {
       contents: [{
         parts: [{
           text: req.query.prompt
@@ -542,6 +541,7 @@ app.get('/gemini', async (req, res) => {
       const red = encodeURIComponent(JSON.stringify(json));
   res.redirect(succes+red);
   } catch (error) {
+      console.error(error);
     res.redirect(failed)
   }
 });
@@ -553,21 +553,8 @@ app.get('/gpt', async (req, res) => {
     }
 
     try {
-        const data = await new Promise((resolve, reject) => {
-            gpt({
-                messages: [],
-                prompt: prompt,
-                model: 'gpt-4',
-                markdown: false
-            }, (err, data) => {
-                if (err != null) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
-        const json = {endpoint:base+'/api/gpt?prompt='+encodeURIComponent(prompt),status:200, result:data.gpt}
+        const response = await rsnchat.gpt(prompt)
+        const json = {endpoint:base+'/api/gpt?prompt='+encodeURIComponent(prompt),status:200, result:response.message}
         const red = encodeURIComponent(JSON.stringify(json));
         res.redirect(succes+red);
     } catch (err) {
@@ -577,7 +564,53 @@ app.get('/gpt', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-res.sendFile(path.join(__dirname, './index.html'));
+res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - NueApi</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 100px;
+    }
+    .jumbotron {
+      background: linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%);
+      color: white;
+      padding: 3rem 2rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .btn-custom {
+      background-color: #007bff;
+      color: white;
+      border-radius: 20px;
+      padding: 10px 20px;
+    }
+    .btn-custom:hover {
+      background-color: #0056b3;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container text-center">
+    <div class="jumbotron">
+      <h1 class="display-4">Welcome to NueApi</h1>
+      <p class="lead">Ini hanyalah side server dari NueApi. Silahkan akses melalui endpoint dari NueApi.</p>
+      <a href="https://nueapi.vercel.app" class="btn btn-custom">Back to API</a>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+`)
 });
 
 app.get('/snapsave', async (req, res) => {
@@ -1016,6 +1049,7 @@ const sdxlList = async (res) => {
 };
 
 
-app.listen(3000, () => {
-    console.log('Server berjalan di port 3000');
+
+app.listen(8000, () => {
+console.log("Berjalan di port 8000")
 });
